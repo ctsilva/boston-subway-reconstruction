@@ -41,7 +41,7 @@ You do not need to know how to program to run this. Follow the steps below in or
 5. [Results: the duck-under](#5-results-the-duck-under)
 6. [Results: grading the street](#6-results-grading-the-street)
 7. [Adding your own scenario](#7-adding-your-own-scenario)
-8. [Using the numbers in MATLAB or Excel](#8-using-the-numbers-in-matlab-or-excel)
+8. [Using the numbers in Python, MATLAB or Excel](#8-using-the-numbers-in-python-matlab-or-excel)
 9. [How the model was made](#9-how-the-model-was-made)
 10. [What is in each folder](#10-what-is-in-each-folder)
 11. [Using the data in your own Autark code](#11-using-the-data-in-your-own-autark-code)
@@ -59,7 +59,7 @@ You do not need to know how to program to run this. Follow the steps below in or
 | :--- | :--- | :--- |
 | **A recent Chrome or Edge** | The viewer draws with WebGPU, which Chrome and Edge have switched on by default. Firefox and Safari may not work. | Open `chrome://gpu` and look for "WebGPU: Hardware accelerated". |
 | **Node.js** (version 22.12 or newer) | Runs the small web server for the viewer. | Type `node --version` in a terminal. If it is missing, install the "LTS" version from <https://nodejs.org>. |
-| **Python 3** (3.10 or newer) | Only needed if you want to rebuild the data or add a scenario. | Type `python3 --version`. If it is missing, install it from <https://www.python.org/downloads/>. |
+| **Python 3** (3.10 or newer) | Needed to rebuild the data, add a scenario, or plot the numbers. Not needed just to open the viewer. | Type `python3 --version`. If it is missing, install it from <https://www.python.org/downloads/>. |
 | **An internet connection, once** | Step 1 downloads the Autark toolkit and one other tool (about 70 MB). | |
 
 A "terminal" is the app called **Terminal** on a Mac, or **PowerShell** on Windows. Steps 1 and 2
@@ -154,7 +154,7 @@ python3 -m venv .venv
 ```
 
 The first two lines create a private Python environment in a folder called `.venv` and install
-four libraries into it. (`requirements.lock.txt` lists the exact versions the included data was
+five libraries into it. (`requirements.lock.txt` lists the exact versions the included data was
 built with, if you need to reproduce it exactly.) You do that once. The last line rebuilds everything under `data/` in a few
 seconds and prints two summary lines per scenario. Then reload the page in Chrome.
 
@@ -458,18 +458,72 @@ The build checks this file before it writes anything. If an entry has a typo, an
 or asks for a ramp that cannot be modelled (so gentle that it would start off the edge of the
 drawing, say), it stops with a message naming the entry and leaves the existing data untouched.
 
-## 8. Using the numbers in MATLAB or Excel
+## 8. Using the numbers in Python, MATLAB or Excel
 
 Every scenario has a folder under `data/scenarios/` with two files of numbers:
 
-- **`profiles.csv`** opens in Excel or MATLAB. One row for every 3 m of every track: the rail
-  height, the roof height, the ground height, the depth, the cover and the slope.
+- **`profiles.csv`** has one row for every 3 m of every track: the rail height, the roof height,
+  the ground height, the depth, the cover and the slope. It opens in Python, MATLAB or Excel.
 - **`stats.json`** holds the totals shown in the viewer's two tables, and more: the ramp length,
   its grades (`mean_rail_grade_pct`, `max_rail_grade_pct`, and `relative_drop_grade_pct`, the drop
   relative to the main track), the headroom at each crossing, the roof area by level, the rise of
   each stair.
 
-To draw the long profile of the duck-under track in MATLAB:
+The track names are `track_sb_pleasant` (the one that ducks under), `track_sb_boylston`,
+`track_nb_boylston`, `track_nb_pleasant`, `crossover_mid` and `crossover_north`.
+
+### Python (recommended)
+
+The whole model is built with Python, so learning to read its numbers in Python lets you go on to
+change the model itself. It is free, and it is what most scientific computing now uses.
+
+A ready-made example draws the long profile of a track and compares scenarios. After the setup in
+[Step 3](#step-3-optional-rebuild-the-data), run:
+
+```bash
+.venv/bin/python scripts/plot_profile.py
+```
+
+It saves `profile.png`:
+
+![Long profile of the duck-under track, baseline against the 5% ramp](docs/profile_example.png)
+
+The blue line is the baseline ramp and the orange line is the hypothetical 5% ramp, which has to
+start about 36 m earlier to reach the same depth. To compare other scenarios, or another track:
+
+```bash
+.venv/bin/python scripts/plot_profile.py existing duck_under_9pct duck_under_longest
+.venv/bin/python scripts/plot_profile.py --track track_nb_pleasant existing
+```
+
+`scripts/plot_profile.py` is about seventy lines and written to be read. The core of it is:
+
+```python
+import csv
+import matplotlib.pyplot as plt
+
+rows = []
+with open('data/scenarios/existing/profiles.csv') as file:
+    for row in csv.DictReader(file):
+        if row['track'] == 'track_sb_pleasant':
+            rows.append(row)
+
+distance = [float(row['chainage_m']) for row in rows]
+rail = [float(row['ele_rail_m']) for row in rows]
+
+plt.plot(distance, rail)
+plt.xlabel('distance along the track, m')
+plt.ylabel('rail elevation, m')
+plt.savefig('profile.png')
+```
+
+Good next exercises: add the slope (`grade_pct`) as a second plot, or read `stats.json` with
+Python's `json` module and print the ramp length for every scenario.
+
+### MATLAB
+
+The same file reads directly into MATLAB. This example has not been run in MATLAB; the column
+names are those in the file.
 
 ```matlab
 T = readtable('data/scenarios/existing/profiles.csv');
@@ -479,10 +533,9 @@ plot(t.chainage_m, t.ele_surface_m, t.chainage_m, t.ele_roof_top_m, t.chainage_m
 legend('street', 'top of roof', 'rail'); xlabel('distance along the track, m'); ylabel('elevation, m')
 ```
 
-To compare two ramps, read the same file from two scenario folders (`existing`, which is the
-baseline, and `duck_under_5pct`, say) and plot both `ele_rail_m` columns. The track names are
-`track_sb_pleasant`, `track_sb_boylston`, `track_nb_boylston`, `track_nb_pleasant`,
-`crossover_mid` and `crossover_north`.
+### Excel
+
+Open `profiles.csv` and filter the `track` column.
 
 ## 9. How the model was made
 
@@ -554,6 +607,7 @@ itself.
 | `config/model.json` | The map placement, the dimensions read off the drawing, and the assumptions. |
 | `config/scenarios.json` | The list of scenarios. **This is the file to edit.** |
 | `scripts/build.py` | Builds everything in `data/`. |
+| `scripts/plot_profile.py` | A short Python example: plots the long profile of a track for one or more scenarios. |
 | `scripts/check.py` | Checks the built data against itself: clearances, valid shapes, consistent numbers. |
 | `scripts/georeference.py` | Redoes the match to OpenStreetMap and redraws `docs/osm_overlay.png`. |
 | `scripts/overlay.py` | Redraws `docs/trace_overlay.png`. |
@@ -652,7 +706,8 @@ has to guess:
 - Where the scanned drawing was published and its copyright status. It dates from about 1897 and
   is assumed to be in the public domain.
 - The setup steps on a computer other than the one this was built on (a Mac with Chrome). The
-  minimum Node.js and Python versions given are estimates. The MATLAB example has not been run.
+  minimum Node.js and Python versions given are estimates. The MATLAB example has not been run;
+  the Python one has.
 
 ## 13. Future work
 
