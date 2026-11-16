@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Boylston St. station, 1897 — grading scenarios</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <aside id="panel">
+    <h1>Boylston St. station, 1897</h1>
+    <p class="sub">Tremont Street Subway, digitized from the Geo. H. Walker &amp; Co. plan</p>
+
+    <label for="scenario">Scenario</label>
+    <select id="scenario"></select>
+    <p id="scenario-desc" class="note"></p>
+    <button id="reset-view" type="button">Reset view</button>
+
+    <label>Layers</label>
+    <div id="layers"></div>
+
+    <label for="colour">Colour by</label>
+    <select id="colour">
+      <option value="analysis">Analysis: cover over the roof, slope of the tracks</option>
+      <option value="evidence">Evidence: what is measured and what is guessed</option>
+    </select>
+    <div id="evidence-legend" hidden>
+      <div><span class="sw" data-basis="measured"></span><b>Measured</b> position traced from the plan, level scaled off a cross section</div>
+      <div><span class="sw" data-basis="inferred"></span><b>Inferred</b> position traced, level follows from a stated rule</div>
+      <div><span class="sw" data-basis="assumed"></span><b>Assumed</b> position traced, level not shown on the drawing</div>
+      <div><span class="sw" data-basis="hypothetical"></span><b>Hypothetical</b> an alternative that was never built</div>
+    </div>
+
+    <label>Track profile <small>(linked to the 3D view)</small></label>
+    <p class="note">Each dot is 3 m of track: how far north it is, and how high its rail is. Colour is its
+      slope, as in the 3D view. Drag a box over dots to light up those pieces of track.</p>
+    <div id="profile" class="plot"></div>
+
+    <label>How much track at each slope</label>
+    <p class="note">Bars count 3 m pieces of track by slope (negative = downhill in the direction of travel).
+      Drag across bars to light them up in 3D.</p>
+    <div id="grades" class="plot"></div>
+    <button id="clear-selection" type="button">Clear selection</button>
+
+    <label for="pick">Double-click to inspect</label>
+    <select id="pick"></select>
+    <dl id="info"><dt>Nothing selected</dt></dl>
+
+    <label>The duck-under ramp</label>
+    <table id="duck"></table>
+    <p class="note">The ramp takes the southbound Pleasant St track down into the sub-subway. It has to start
+      south of the platform and be at full depth before it passes under the Boylston St tracks.</p>
+
+    <label>Cover over the roof</label>
+    <table id="stats"></table>
+    <p class="note">Elevations in metres NAVD88, drawn above a datum plane at <span id="datum"></span> m.
+      Cover is ground minus top of roof slab.</p>
+  </aside>
+  <main><canvas></canvas><div id="status">Loading…</div></main>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

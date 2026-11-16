@@ -1,0 +1,81 @@
+{
+ "datum_m": -8.0,
+ "origin_lonlat": [
+  -71.0645,
+  42.3532
+ ],
+ "sheet_corners_lonlat": [
+  [
+   -71.06410193,
+   42.35209181
+  ],
+  [
+   -71.06335328,
+   42.35410829
+  ],
+  [
+   -71.06463123,
+   42.35436828
+  ],
+  [
+   -71.06537987,
+   42.3523518
+  ]
+ ],
+ "scenarios": [
+  {
+   "id": "existing",
+   "title": "Existing grade",
+   "description": "Present-day ground (USGS 3DEP), subway as built.",
+   "structure": "as_built"
+  },
+  {
+   "id": "lowered_1m",
+   "title": "Street lowered 1 m",
+   "description": "Ground cut 1 m over the subway, subway as built.",
+   "structure": "as_built"
+  },
+  {
+   "id": "raised_1m",
+   "title": "Street raised 1 m",
+   "description": "1 m of fill over the subway, subway as built.",
+   "structure": "as_built"
+  },
+  {
+   "id": "level_cross",
+   "title": "Uniform grade, no cross slope",
+   "description": "Ground over the subway regraded to the average Tremont St grade with no rise toward the Common.",
+   "structure": "as_built"
+  },
+  {
+   "id": "grade_3pct",
+   "title": "3% street grade",
+   "description": "Ground regraded to rise 3% northward, pivoting at section A-B; subway as built.",
+   "structure": "as_built"
+  },
+  {
+   "id": "grade_3pct_follow",
+   "title": "3% street grade, subway re-profiled",
+   "description": "Same regrading, with the subway re-profiled to stay 17.75 ft below the street.",
+   "structure": "follow_surface"
+  },
+  {
+   "id": "duck_under_5pct",
+   "title": "Duck-under at 5%",
+   "description": "Hypothetical: the ramp into the sub-subway at a gentler 5%, still reaching full depth at section A-B. It has to start beside the southbound platform.",
+   "structure": "as_built"
+  },
+  {
+   "id": "duck_under_9pct",
+   "title": "Duck-under at 9%",
+   "description": "Hypothetical: a steeper, shorter ramp that starts south of the platform and reaches full depth at section A-B.",
+   "structure": "as_built"
+  },
+  {
+   "id": "duck_under_longest",
+   "title": "Duck-under, longest ramp that fits",
+   "description": "Hypothetical: the ramp starts at the end of the southbound platform and reaches full depth only just before passing under the Boylston St tracks. This is the gentlest slope the plan allows, but it contradicts section A-B.",
+   "structure": "as_built"
+  }
+ ]
+}

@@ -1,0 +1,110 @@
+{
+ "id": "level_cross",
+ "title": "Uniform grade, no cross slope",
+ "description": "Ground over the subway regraded to the average Tremont St grade with no rise toward the Common.",
+ "surface": {
+  "type": "plane",
+  "grade_long_pct": null,
+  "grade_cross_pct": 0.0
+ },
+ "structure": "as_built",
+ "main_rail": {
+  "ele_at_section_ab_m": 3.395,
+  "ele_at_section_cd_m": 4.124,
+  "mean_grade_pct_northward": 0.744
+ },
+ "cover_over_roof": {
+  "min_m": -0.078,
+  "mean_m": 0.474,
+  "max_m": 5.183,
+  "area_exposed_m2": 1154.8,
+  "area_below_min_cover_m2": 2322.5,
+  "min_cover_criterion_m": 0.15,
+  "roof_area_m2": 5851.4,
+  "mean_soil_load_kpa": 9.19,
+  "max_soil_load_kpa": 98.47
+ },
+ "earthwork_vs_existing": {
+  "cut_m3": 3317.6,
+  "fill_m3": 4170.0
+ },
+ "duck_under": {
+  "hypothetical": false,
+  "drop_m": 4.18,
+  "ramp_length_m": 61.7,
+  "mean_grade_pct": 6.77,
+  "max_grade_pct": 8.75,
+  "room_for_ramp_m": 81.4,
+  "platform_overlap_m": 0.0,
+  "headroom_at_crossing_m": 3.9,
+  "headroom_required_m": 3.9,
+  "depth_at_section_ab_m": 4.06,
+  "agrees_with_section_ab": true,
+  "fits": true
+ },
+ "tracks": {
+  "track_sb_pleasant": {
+   "max_abs_grade_pct": 8.75,
+   "min_ele": -1.257,
+   "max_ele": 4.194,
+   "max_depth_m": 9.925
+  },
+  "track_sb_boylston": {
+   "max_abs_grade_pct": 2.39,
+   "min_ele": 2.919,
+   "max_ele": 4.194,
+   "max_depth_m": 6.259
+  },
+  "track_nb_boylston": {
+   "max_abs_grade_pct": 2.4,
+   "min_ele": 2.919,
+   "max_ele": 4.194,
+   "max_depth_m": 6.259
+  },
+  "track_nb_pleasant": {
+   "max_abs_grade_pct": 6.57,
+   "min_ele": 1.671,
+   "max_ele": 4.194,
+   "max_depth_m": 6.649
+  },
+  "crossover_mid": {
+   "max_abs_grade_pct": 0.38,
+   "min_ele": 4.127,
+   "max_ele": 4.178,
+   "max_depth_m": 5.484
+  },
+  "crossover_north": {
+   "max_abs_grade_pct": 0.51,
+   "min_ele": 3.916,
+   "max_ele": 4.094,
+   "max_depth_m": 6.06
+  }
+ },
+ "stairs": {
+  "stairs_nb_south": {
+   "rise_m": 5.426,
+   "risers": 31
+  },
+  "stairs_nb_mid": {
+   "rise_m": 4.838,
+   "risers": 28
+  },
+  "stairs_sb_mid": {
+   "rise_m": 4.825,
+   "risers": 28
+  },
+  "stairs_sb_passage": {
+   "rise_m": 4.803,
+   "risers": 27
+  },
+  "stairs_sb_north": {
+   "rise_m": 5.503,
+   "risers": 31
+  }
+ },
+ "counts": {
+  "subway_3d": 1795,
+  "surface_3d": 4124,
+  "tracks": 356
+ }
+}

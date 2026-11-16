@@ -1,0 +1,110 @@
+{
+ "id": "grade_3pct",
+ "title": "3% street grade",
+ "description": "Ground regraded to rise 3% northward, pivoting at section A-B; subway as built.",
+ "surface": {
+  "type": "plane",
+  "grade_long_pct": 3.0,
+  "grade_cross_pct": 0.0
+ },
+ "structure": "as_built",
+ "main_rail": {
+  "ele_at_section_ab_m": 3.395,
+  "ele_at_section_cd_m": 4.124,
+  "mean_grade_pct_northward": 0.744
+ },
+ "cover_over_roof": {
+  "min_m": -1.041,
+  "mean_m": 1.328,
+  "max_m": 4.63,
+  "area_exposed_m2": 1031.8,
+  "area_below_min_cover_m2": 1355.4,
+  "min_cover_criterion_m": 0.15,
+  "roof_area_m2": 5851.4,
+  "mean_soil_load_kpa": 27.03,
+  "max_soil_load_kpa": 87.97
+ },
+ "earthwork_vs_existing": {
+  "cut_m3": 4382.9,
+  "fill_m3": 17743.8
+ },
+ "duck_under": {
+  "hypothetical": false,
+  "drop_m": 4.18,
+  "ramp_length_m": 61.7,
+  "mean_grade_pct": 6.77,
+  "max_grade_pct": 8.75,
+  "room_for_ramp_m": 81.4,
+  "platform_overlap_m": 0.0,
+  "headroom_at_crossing_m": 3.9,
+  "headroom_required_m": 3.9,
+  "depth_at_section_ab_m": 4.06,
+  "agrees_with_section_ab": true,
+  "fits": true
+ },
+ "tracks": {
+  "track_sb_pleasant": {
+   "max_abs_grade_pct": 8.75,
+   "min_ele": -1.257,
+   "max_ele": 4.194,
+   "max_depth_m": 9.811
+  },
+  "track_sb_boylston": {
+   "max_abs_grade_pct": 2.39,
+   "min_ele": 2.919,
+   "max_ele": 4.194,
+   "max_depth_m": 9.811
+  },
+  "track_nb_boylston": {
+   "max_abs_grade_pct": 2.4,
+   "min_ele": 2.919,
+   "max_ele": 4.194,
+   "max_depth_m": 9.811
+  },
+  "track_nb_pleasant": {
+   "max_abs_grade_pct": 6.57,
+   "min_ele": 1.671,
+   "max_ele": 4.194,
+   "max_depth_m": 9.811
+  },
+  "crossover_mid": {
+   "max_abs_grade_pct": 0.38,
+   "min_ele": 4.127,
+   "max_ele": 4.178,
+   "max_depth_m": 7.631
+  },
+  "crossover_north": {
+   "max_abs_grade_pct": 0.51,
+   "min_ele": 3.916,
+   "max_ele": 4.094,
+   "max_depth_m": 9.222
+  }
+ },
+ "stairs": {
+  "stairs_nb_south": {
+   "rise_m": 4.877,
+   "risers": 28
+  },
+  "stairs_nb_mid": {
+   "rise_m": 5.542,
+   "risers": 32
+  },
+  "stairs_sb_mid": {
+   "rise_m": 6.068,
+   "risers": 35
+  },
+  "stairs_sb_passage": {
+   "rise_m": 5.804,
+   "risers": 33
+  },
+  "stairs_sb_north": {
+   "rise_m": 8.203,
+   "risers": 47
+  }
+ },
+ "counts": {
+  "subway_3d": 1795,
+  "surface_3d": 4124,
+  "tracks": 356
+ }
+}

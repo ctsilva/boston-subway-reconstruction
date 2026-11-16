@@ -1,0 +1,17 @@
+{
+  "name": "boston-subway-viewer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@urban-toolkit/autk-core": "4.1.1",
+    "@urban-toolkit/autk-map": "4.1.1",
+    "@urban-toolkit/autk-plot": "4.1.1"
+  },
+  "devDependencies": {
+    "vite": "^8.3.4"
+  }
+}

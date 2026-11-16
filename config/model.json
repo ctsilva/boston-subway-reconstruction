@@ -1,0 +1,65 @@
+{
+  "_doc": "Georeferencing and vertical dimensions for the Boylston St. station model. Lengths marked _ft were scaled off the cross sections on the source drawing; entries listed under 'assumptions' are not on the drawing.",
+  "georeference": {
+    "_doc": "Similarity transform from image pixels to WGS84, fitted by scripts/georeference.py: the digitized tracks are matched to OpenStreetMap's Green Line track ways (253 control points, median misfit 1.3 px = 0.3 m). The drawing's own scale bar gives 0.2396 m/px.",
+    "lat0": 42.3532,
+    "lon0": -71.0645,
+    "anchor_px": [
+      350,
+      320
+    ],
+    "anchor_enu_m": [
+      -8.7077,
+      -24.9747
+    ],
+    "sheet_x_azimuth_deg": 15.3672,
+    "metres_per_pixel": 0.2391
+  },
+  "datum_m": -8.0,
+  "vertical": {
+    "_doc": "Section scale: 2.128 px/ft. Elevations are metres NAVD88, tied to the present-day ground (USGS 3DEP).",
+    "rail_below_street_ft": 17.75,
+    "clear_height_ft": 14.5,
+    "roof_slab_ft": 2.5,
+    "floor_slab_ft": 2.5,
+    "wall_thickness_ft": 2.5,
+    "rail_above_floor_m": 0.2,
+    "platform_above_rail_m": 0.3,
+    "subsubway": {
+      "rail_below_main_ft": 13.7,
+      "clear_height_ft": 12.8,
+      "outer_width_ft": 21.9,
+      "ramp_top_px_x": 545,
+      "ramp_bottom_px_x": 287,
+      "south_portal_px": [
+        124,
+        342.5
+      ],
+      "south_rise_grade_pct": 5.0,
+      "southbound_platform_end_px_x": 545,
+      "crossing_margin_m": 6.0,
+      "slab_over_ft": 0.9
+    },
+    "sub_passage_clear_ft": 8.5,
+    "conduit_height_ft": 14.0,
+    "conduit_below_floor_m": 0.3,
+    "soil_unit_weight_kn_m3": 19.0,
+    "min_cover_m": 0.15,
+    "riser_m": 0.178,
+    "grade_smoothing_m": 12.0,
+    "branch_blend_m": 25.0
+  },
+  "assumptions": [
+    "Cut-and-cover prior: the main-level rail sits 17.75 ft (17.2 ft at section A-B, 18.3 ft at C-D on the drawing) below the smoothed street grade. Inside the station box the reference is the Tremont St curb at the same sheet x, so the tracks are level with each other; along the Boylston St and Pleasant St branches it is the smoothed ground above the tunnel.",
+    "The present-day ground (USGS 3DEP) stands in for the 1897 ground.",
+    "Where the sub-subway ramp starts (ramp_top_px_x) is not shown; it is taken at the south end of the southbound platform edge. Section A-B fixes the full 13.7 ft depth at ramp_bottom_px_x.",
+    "South of the crossing under the Boylston St tracks the sub-subway is assumed to climb at south_rise_grade_pct; the drawing gives no levels there.",
+    "Sub-passage headroom, the conduit's level, the soil unit weight and the minimum-cover criterion are assumed."
+  ],
+  "output": {
+    "track_segment_m": 3.0,
+    "cell_m": 3.0,
+    "surface_cell_m": 4.0,
+    "ground_grid_m": 8.0
+  }
+}
