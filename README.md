@@ -46,9 +46,10 @@ You do not need to know how to program to run this. Follow the steps below in or
 10. [What is in each folder](#10-what-is-in-each-folder)
 11. [Using the data in your own Autark code](#11-using-the-data-in-your-own-autark-code)
 12. [What the model cannot tell you](#12-what-the-model-cannot-tell-you)
-13. [Troubleshooting](#13-troubleshooting)
-14. [Glossary](#14-glossary)
-15. [Credits](#15-credits)
+13. [Future work](#13-future-work)
+14. [Troubleshooting](#14-troubleshooting)
+15. [Glossary](#15-glossary)
+16. [Sources, credits and licence](#16-sources-credits-and-licence)
 
 ---
 
@@ -137,7 +138,8 @@ python3 -m venv .venv
 ```
 
 The first two lines create a private Python environment in a folder called `.venv` and install
-four libraries into it. You do that once. The last line rebuilds everything under `data/` in a few
+four libraries into it. (`requirements.lock.txt` lists the exact versions the included data was
+built with, if you need to reproduce it exactly.) You do that once. The last line rebuilds everything under `data/` in a few
 seconds and prints two summary lines per scenario. Then reload the page in Chrome.
 
 To confirm that the numbers still describe the model that was written, run the checks as well:
@@ -617,7 +619,55 @@ map.events.on(MapEvent.PICKING, ({ selection }) => profile.setSelection(selectio
   earth over the roof. It does not check whether a car could climb the ramp or whether the
   structure could carry the load.
 
-## 13. Troubleshooting
+### Not validated
+
+These have not been checked against anything independent. They are stated here so that nobody
+has to guess:
+
+- The vertical accuracy of the model. No figure is claimed.
+- The position of the 1897 tracks. The model is fitted to today's tracks.
+- That today's ground matches the ground of 1897.
+- Where the duck-under ramp starts, and the thickness of the deck where it passes under the
+  Boylston Street tracks.
+- The 1.2% southward fall of the main track beside the ramp, which comes from today's street.
+- The length of the vertical curves (3 m each way).
+- The dimensions read off the cross sections, beyond one person's reading of a small scan. The
+  pixel positions that were measured are not recorded.
+- Where the scanned drawing was published and its copyright status. It dates from about 1897 and
+  is assumed to be in the public domain.
+- The setup steps on a computer other than the one this was built on (a Mac with Chrome). The
+  minimum Node.js and Python versions given are estimates. The MATLAB example has not been run.
+
+## 13. Future work
+
+In rough order of how much each would improve the conclusions:
+
+1. **Find better sources.** A higher-resolution scan, and above all a longitudinal profile of the
+   sub-subway from the Boston Transit Commission's reports, would replace the two assumptions the
+   ramp results rest on. Record the archival reference of every drawing used.
+2. **Check levels independently.** Compare the reconstructed rail and street levels with levels
+   printed in period engineering reports or with a survey of the station as it stands.
+3. **Record the measurements.** Store the pixel positions of every dimension scaled off the
+   sections, so a disputed reading can be revisited.
+4. **Run sensitivity sweeps.** Vary the platform end, the position of section A-B, the depth, the
+   drop and the curve length together, and report each conclusion as a range.
+5. **Solve for a maximum grade.** A scenario currently sets the average rail grade. Setting the
+   steepest allowed grade, with realistic vertical curves, is the more natural engineering
+   question.
+6. **A proper long-profile comparison.** Plot one track against distance along it, with the
+   baseline and an alternative together, the street, the underside of the deck, and markers for
+   the platform end, section A-B and both crossings.
+7. **A legend for every coloured layer**, and a note when a colour scale is saturated.
+8. **Add context.** Trace the footpaths, columns and kiosks, and load the surrounding streets and
+   buildings from the OpenStreetMap extract already in `data/osm/`.
+9. **Go beyond geometry.** Whether a car of the period could climb the ramp, and what the roof
+   could carry, are separate engineering studies.
+10. **Harden the software.** Write a build manifest (input and output hashes, versions), build to
+    a temporary folder and swap it in only on success, add automated tests and a type check for
+    the viewer, split `build.py` into testable parts, and make the viewer usable on narrow screens
+    and with a keyboard.
+
+## 14. Troubleshooting
 
 **The page is blank, or the 3D area is empty.**
 Your browser probably does not have WebGPU. Use a current Chrome or Edge, and check
@@ -652,7 +702,7 @@ message gives the line number.
 **My new scenario does not show up.**
 Rebuild the data ([Step 3](#step-3-optional-rebuild-the-data)), then reload the page.
 
-## 14. Glossary
+## 15. Glossary
 
 | Word | Meaning |
 | :--- | :--- |
@@ -672,10 +722,18 @@ Rebuild the data ([Step 3](#step-3-optional-rebuild-the-data)), then reload the 
 | **NAVD88** | The standard zero for heights in North America, close to mean sea level. |
 | **WebGPU** | The browser feature Autark uses to draw 3D quickly. |
 
-## 15. Credits
+## 16. Sources, credits and licence
 
-- Created for Claudia Wysocky's project at Boston University (VANTAGE).
-- Drawing: plan of Boylston St. station, Tremont Street Subway, Geo. H. Walker & Co., Boston.
-- Map data: © OpenStreetMap contributors, under the Open Database License.
-- Ground elevations: U.S. Geological Survey, 3D Elevation Program.
-- Viewer: [Autark](https://github.com/urban-toolkit/autark) (`autk-map` for 3D, `autk-plot` for the plots).
+Created for Claudia Wysocky's project at Boston University (VANTAGE).
+
+| Item | Source | Terms |
+| :--- | :--- | :--- |
+| Code in this repository | Claudio Silva, 2026 | [MIT License](LICENSE) |
+| The tracing, the model data in `data/scenarios/` and `data/plan_1897.geojson`, and the pictures in `docs/` | Made for this project | MIT License, except where they reproduce the items below |
+| `boylston_station_plan_1897.png` | Plan of Boylston St. station, Tremont Street Subway, Geo. H. Walker & Co., Boston, about 1897. Where this scan was published is not recorded. | Assumed public domain because of its age; not verified |
+| `data/osm/boylston_area.osm`, and the map lines in `docs/osm_overlay.png` | © OpenStreetMap contributors. Downloaded on 16 November 2026 from the OpenStreetMap API for the box 42.3500 to 42.3565 N, 71.0685 to 71.0615 W. | [Open Database License](https://www.openstreetmap.org/copyright) |
+| `data/dem/usgs_3dep_samples.json` | U.S. Geological Survey, 3D Elevation Program, Elevation Point Query Service. 120 points queried on 16 November 2026. | U.S. Government work, public domain |
+| Viewer libraries | [Autark](https://github.com/urban-toolkit/autark) (`autk-map`, `autk-plot`, `autk-core` 4.1.1) and Vite, installed by `npm install` | Their own licences |
+
+The data was built and checked with Python 3.15.2 and the library versions in
+`requirements.lock.txt`.
