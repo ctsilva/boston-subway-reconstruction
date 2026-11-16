@@ -136,19 +136,26 @@ C_SECTION_AB = _t1_chainage_at_x(SS['ramp_bottom_px_x'])                 # full 
 C_PORTAL = T1.project(shapely.Point(px2sheet(*SS['south_portal_px'])))
 
 
-def _first_crossing():
-    """Chainage along T1 where it first passes under one of the Boylston St tracks."""
-    cs = []
+def _crossings():
+    """Where T1 passes under the Boylston St tracks: [(track id, chainage along T1)], north to south."""
+    out = []
     for fid in ('track_sb_boylston', 'track_nb_boylston'):
         hit = T1.intersection(F[fid]['_geom'])
-        cs += [T1.project(q) for q in ([hit] if hit.geom_type == 'Point' else getattr(hit, 'geoms', []))]
-    return min(c for c in cs if c > C_SECTION_AB)
+        out += [(fid, T1.project(q)) for q in ([hit] if hit.geom_type == 'Point' else getattr(hit, 'geoms', []))]
+    return sorted([c for c in out if c[1] > C_SECTION_AB], key=lambda c: c[1])
 
 
-C_CROSSING = _first_crossing()
+CROSSINGS = _crossings()
+C_CROSSING = CROSSINGS[0][1]
+DROP = SS['rail_below_main_ft'] * FT
+# Main rail down to the underside of the deck that carries the main level over the sub-subway.
+# Section A-B gives it (13.7 ft drop less 12.8 ft clear height). The same deck is assumed where the
+# Boylston St tracks cross; it is the one definition used for both the geometry and the clearance check.
+DECK = SS['deck_over_ft'] * FT
+SUB_CLEAR = SS['clear_height_ft'] * FT
+W_CURVE = SS['vertical_curve_m']       # half-length of the vertical curves at each end of a grade
 # The ramp of the duck-under. A scenario may replace it (see set_ramp).
-RAMP = {'top': _t1_chainage_at_x(SS['ramp_top_px_x']), 'bottom': C_SECTION_AB, 'hypothetical': False}
-DROP = V['subsubway']['rail_below_main_ft'] * FT
+RAMP = {'top': C_PLATFORM_END, 'bottom': C_SECTION_AB, 'hypothetical': False, 'requested_grade_pct': None}
 
 # The single-track tunnel south-west of the main box: floor and roof follow T1 here.
 _mid = [px2sheet(*p) for p in [(79, 401), (55, 404.5), (30, 408.5), (5, 411.5)]]
@@ -158,14 +165,38 @@ PASSAGE = Polygon(
 MAIN = FOOTPRINT.difference(PASSAGE).buffer(0)
 
 
-def set_ramp(spec):
-    """Sets the duck-under ramp for a scenario. spec is the scenario's optional 'duck_under' entry."""
+def set_ramp(spec, lv):
+    """Sets the duck-under ramp for a scenario. spec is the scenario's optional 'duck_under' entry.
+
+    grade_pct is the mean grade of the rail itself between the top and the bottom of the ramp, so the
+    ramp's length is solved against the main rail profile (which is not level).
+    """
     if not spec:
-        RAMP.update(top=_t1_chainage_at_x(SS['ramp_top_px_x']), bottom=C_SECTION_AB, hypothetical=False)
+        RAMP.update(top=_t1_chainage_at_x(SS['ramp_top_px_x']), bottom=C_SECTION_AB, hypothetical=False,
+                    requested_grade_pct=None)
         return
     bottom = C_CROSSING - SS['crossing_margin_m'] if spec.get('full_depth_at') == 'crossing' else C_SECTION_AB
-    top = bottom - DROP / (spec['grade_pct'] / 100.0) if spec.get('grade_pct') else C_PLATFORM_END
-    RAMP.update(top=max(top, 1.0), bottom=bottom, hypothetical=True)
+    g = spec.get('grade_pct')
+    if g is None:
+        top = C_PLATFORM_END
+    else:
+        def main_rail(c):
+            q = T1.interpolate(c)
+            return lv.rail(q.x, q.y)
+
+        def mean_grade(top):
+            return 100.0 * (main_rail(top) - (main_rail(bottom) - DROP)) / (bottom - top)
+        lo, hi = 0.0, bottom - 2 * W_CURVE - 1.0
+        if mean_grade(lo) > g:
+            raise ValueError(f"duck_under.grade_pct {g}: a ramp this gentle would start beyond the north edge of the "
+                             f"drawing (the gentlest that can be modelled is {mean_grade(lo):.1f}%)")
+        if mean_grade(hi) < g:
+            raise ValueError(f"duck_under.grade_pct {g}: steeper than can be modelled ({mean_grade(hi):.1f}% at most)")
+        for _ in range(50):
+            mid = (lo + hi) / 2
+            lo, hi = (mid, hi) if mean_grade(mid) < g else (lo, mid)
+        top = (lo + hi) / 2
+    RAMP.update(top=top, bottom=bottom, hypothetical=True, requested_grade_pct=g)
 
 
 def t1_corridor():
@@ -173,19 +204,24 @@ def t1_corridor():
 
 
 def t1_drop(c):
-    """Depth of the sub-subway rail below the main level at chainage c along T1 (metres)."""
-    if c <= RAMP['top']:
+    """Depth of the sub-subway rail below the main level at chainage c along T1, before the vertical
+    curves are applied. The straight grades are shortened by W_CURVE at each end so that, once the
+    curves are in, the descent starts at RAMP['top'] and is complete at RAMP['bottom']."""
+    top, bottom = RAMP['top'] + W_CURVE, RAMP['bottom'] - W_CURVE
+    if bottom <= top:
+        top = bottom = (top + bottom) / 2
+    if c <= top:
         return 0.0
-    if c <= RAMP['bottom']:
-        return DROP * (c - RAMP['top']) / (RAMP['bottom'] - RAMP['top'])
-    if c <= C_PORTAL:
+    if c < bottom:
+        return DROP * (c - top) / (bottom - top)
+    if c <= C_PORTAL + W_CURVE:
         return DROP
-    return max(0.0, DROP - V['subsubway']['south_rise_grade_pct'] / 100.0 * (c - C_PORTAL))
+    return max(0.0, DROP - SS['south_rise_grade_pct'] / 100.0 * (c - C_PORTAL - W_CURVE))
 
 
-def t1_drop_smooth(c, w=6.0):
-    """Short vertical curves: average the piecewise-linear profile over +/- w metres."""
-    return float(np.mean([t1_drop(c + d) for d in np.linspace(-w, w, 9)]))
+def t1_drop_smooth(c):
+    """Vertical curves: the piecewise-linear profile averaged over +/- W_CURVE metres."""
+    return float(np.mean([t1_drop(c + d) for d in np.linspace(-W_CURVE, W_CURVE, 9)]))
 
 
 # ---------------------------------------------------------------- ground surfaces
@@ -395,9 +431,21 @@ def cells(poly, step):
     return [c for s in strips(poly, step, 0) for c in strips(s, step, 1)]
 
 
+def _serialized_ok(poly):
+    """True if the polygon is still valid after conversion to rounded lon/lat (what the file holds)."""
+    g = geom_ll(poly)
+    try:
+        q = Polygon(g['coordinates'][0], g['coordinates'][1:])
+    except ValueError:
+        return False
+    return q.is_valid and q.area > 0
+
+
 class Collector:
     def __init__(self):
         self.features = []
+        self.repaired = 0
+        self.dropped_m2 = 0.0
 
     def prism(self, poly, zmin, zmax, part, **props):
         if zmax - zmin < 0.01 or poly.is_empty:
@@ -406,11 +454,25 @@ class Collector:
             p = shapely.geometry.polygon.orient(p.simplify(0.02), 1.0)
             if p.is_empty or p.area < 0.02:
                 continue
+            if not _serialized_ok(p):
+                # slivers can fold over when coordinates are rounded: open the shape slightly and retry
+                area, fixed = p.area, None
+                for tol in (0.05, 0.15, 0.4):
+                    cand = sorted(polygons(p.buffer(-tol / 2).buffer(tol / 2).simplify(tol / 2)), key=lambda q: -q.area)
+                    if cand and _serialized_ok(cand[0]):
+                        fixed = shapely.geometry.polygon.orient(cand[0], 1.0)
+                        break
+                if fixed is None:
+                    self.dropped_m2 += area
+                    continue
+                self.repaired += 1
+                self.dropped_m2 += area - fixed.area
+                p = fixed
             self.features.append({
                 'type': 'Feature', 'id': len(self.features),
                 'geometry': geom_ll(p),
                 'properties': {'part': part, 'height': round(zmax - DATUM, 3), 'min_height': round(zmin - DATUM, 3),
-                               'ele_top': round(zmax, 3), 'ele_bottom': round(zmin, 3), **props},
+                               'ele_top': round(zmax, 3), 'ele_bottom': round(zmin, 3), 'plan_basis': 'traced', **props},
             })
 
 
@@ -437,7 +499,7 @@ def build_scenario(spec):
     surf = make_surface(spec['surface'])
     follow = spec.get('structure') == 'follow_surface'
     lv = Levels(surf if follow else EXISTING)
-    set_ramp(spec.get('duck_under'))
+    set_ramp(spec.get('duck_under'), lv)
 
     def basis(X, Y, sub=False):
         """How well a level is supported: measured, inferred, assumed, or hypothetical (see README)."""
@@ -447,9 +509,9 @@ def build_scenario(spec):
             c = T1.project(shapely.Point(X, Y))
             if c > C_PORTAL:
                 return 'assumed'
-            if c > RAMP['top'] - 6.0:
+            if c > RAMP['top']:
                 return 'hypothetical' if RAMP['hypothetical'] else 'inferred'
-        return 'inferred' if branch_weight(X, Y) > 0.05 else 'measured'
+        return 'inferred' if branch_weight(X, Y) > 0.05 else 'reconstructed'
     S = lambda X, Y: sample(surf, X, Y)  # noqa: E731
     seg = MODEL['output']['track_segment_m']
     cell = MODEL['output']['cell_m']
@@ -484,11 +546,12 @@ def build_scenario(spec):
                 'cover_m': None if cover is None else round(cover, 3),
                 'incline': f'{grade:.1f}%', 'grade_pct': round(grade, 2), 'abs_grade_pct': round(abs(grade), 2),
                 'basis': basis(mid.x, mid.y, is_t1),
+                'plan_basis': 'traced_approximate' if f.get('approximate') else 'traced',
             }
             ways.append({'type': 'Feature', 'id': len(ways), 'geometry': geom_ll(part, zr), 'properties': props})
             col.prism(part.buffer(gauge / 2, cap_style='flat'), zm - 0.05, zm + 0.12, 'track',
                       **{k2: props[k2] for k2 in ('name', 'track', 'station_m', 'chainage_m', 'ele', 'ele_surface', 'depth_m', 'cover_m',
-                                               'grade_pct', 'abs_grade_pct', 'basis')})
+                                               'grade_pct', 'abs_grade_pct', 'basis', 'plan_basis')})
             rows.append([f['id'], props['chainage_m'], round(mid.x, 2), round(mid.y, 2), *sheet2ll(mid.x, mid.y),
                          props['ele'], round(lv.roof_top(mid.x, mid.y), 3) if inside else '', props['ele_surface'],
                          props['depth_m'], '' if cover is None else props['cover_m'], props['grade_pct']])
@@ -501,23 +564,34 @@ def build_scenario(spec):
 
     # ---- roof, as cells carrying the cover above them
     covers = []
-    sub_clear = V['subsubway']['clear_height_ft'] * FT
+    sub_clear = SUB_CLEAR
     for region, name in ((MAIN, 'main'), (PASSAGE, 'sub-subway')):
         for c in cells(region, cell):
             p = c.representative_point()
             top = lv.roof_top(p.x, p.y)
             cov = S(p.x, p.y) - top
-            covers.append((cov, c.area))
+            covers.append((cov, c.area, name))
             col.prism(c, top - lv.roof_t, top, 'roof', level=name, basis=basis(p.x, p.y, region is PASSAGE), cover_m=round(cov, 3),
                       soil_load_kpa=round(max(cov, 0) * soil, 2), exposed=bool(cov < 0), thin_cover=bool(cov < min_cover))
 
     # ---- floors
     ramp = t1_corridor().intersection(MAIN)
-    ramp_open = unary_union([s for s in strips(ramp, 2.0) if 0.3 < lv.rail(s.centroid.x, s.centroid.y) - lv.rail_t1(s.centroid.x, s.centroid.y)
-                             < sub_clear + 0.2] or [Polygon()])
-    for s in cells(MAIN.difference(ramp_open), 6.0):
+
+    def drop_at(s):
+        q = s.representative_point()
+        return lv.rail(q.x, q.y) - lv.rail_t1(q.x, q.y)
+    # Along the ramp the main floor is open until the sub-subway is deep enough to be decked over.
+    deep = SUB_CLEAR + DECK - 0.05
+    ramp_strips = strips(ramp, 2.0)
+    ramp_open = unary_union([s for s in ramp_strips if 0.3 < drop_at(s) < deep] or [Polygon()])
+    decked = unary_union([s for s in ramp_strips if drop_at(s) >= deep] or [Polygon()])
+    for s in cells(MAIN.difference(ramp_open).difference(decked), 6.0):
         r = lv.rail(s.centroid.x, s.centroid.y)
         col.prism(s, r - lv.bed - lv.floor_t, r - lv.bed, 'floor', level='main', basis=basis(s.centroid.x, s.centroid.y))
+    for s in strips(decked, 2.0):
+        q = s.representative_point()
+        r = lv.rail(q.x, q.y)
+        col.prism(s, r - DECK, r - 0.02, 'floor', level='deck over sub-subway', basis=basis(q.x, q.y, True))
     for s in strips(unary_union([ramp, PASSAGE]), 2.0):
         p = s.representative_point()
         r1, r = lv.rail_t1(p.x, p.y), lv.rail(p.x, p.y)
@@ -615,8 +689,12 @@ def build_scenario(spec):
     write_geojson(os.path.join(out_dir, 'surface_3d.geojson'), ground.features, scenario=sid, datum_m=DATUM)
 
     # ---- statistics
-    cov = np.array([c for c, _ in covers])
-    area = np.array([a for _, a in covers])
+    cov = np.array([c for c, _, _ in covers])
+    area = np.array([a for _, a, _ in covers])
+    lvl = np.array([n for _, _, n in covers])
+    by_level = {n: {'roof_area_m2': round(float(area[lvl == n].sum()), 1),
+                    'area_exposed_m2': round(float(area[(lvl == n) & (cov < 0)].sum()), 1),
+                    'min_cover_m': round(float(cov[lvl == n].min()), 3)} for n in ('main', 'sub-subway')}
     grades = {}
     for f in DOC['features']:
         if f['kind'] == 'track':
@@ -627,24 +705,41 @@ def build_scenario(spec):
     stairs = {f['properties']['stairs']: {'rise_m': f['properties']['rise_m'], 'risers': f['properties']['risers']}
               for f in col.features if f['properties']['part'] == 'stairs'}
     # ---- the duck-under ramp and the restrictions on it
+    def t1_rail(c):
+        q = T1.interpolate(c)
+        return lv.rail_t1(q.x, q.y)
     t1 = [w['properties'] for w in ways if w['properties']['track'] == 'track_sb_pleasant']
-    on_ramp = [p for p in t1 if RAMP['top'] - 6 <= p['chainage_m'] <= RAMP['bottom'] + 6]
-    slab = SS['slab_over_ft'] * FT
-    headroom = t1_drop_smooth(C_CROSSING) - slab
-    need = SS['clear_height_ft'] * FT
+    on_ramp = [p for p in t1 if RAMP['top'] <= p['chainage_m'] <= RAMP['bottom']]
+    length = RAMP['bottom'] - RAMP['top']
+    fall = t1_rail(RAMP['top']) - t1_rail(RAMP['bottom'])
+    # Headroom under the deck, from the same rail and deck definitions the geometry is built with,
+    # at each crossing and over the width of the track above it.
+    crossings = []
+    for fid, c in CROSSINGS:
+        q = T1.interpolate(c)
+        drop = min(t1_drop_smooth(c + d) for d in (-2.0, -1.0, 0.0, 1.0, 2.0))
+        crossings.append({'track_above': fid, 'chainage_m': round(c, 1), 'lonlat': list(sheet2ll(q.x, q.y)),
+                          'rail_above_m': round(lv.rail(q.x, q.y), 3), 'rail_below_m': round(t1_rail(c), 3),
+                          'headroom_m': round(drop - DECK, 2)})
+    headroom = min(c['headroom_m'] for c in crossings)
     overlap = max(0.0, C_PLATFORM_END - RAMP['top'])
     duck = {
-        'hypothetical': RAMP['hypothetical'],
-        'drop_m': round(DROP, 2),
-        'ramp_length_m': round(RAMP['bottom'] - RAMP['top'], 1),
-        'mean_grade_pct': round(100 * DROP / (RAMP['bottom'] - RAMP['top']), 2),
-        'max_grade_pct': max(p['abs_grade_pct'] for p in on_ramp),
+        'hypothetical': RAMP['hypothetical'], 'requested_mean_rail_grade_pct': RAMP['requested_grade_pct'],
+        'drop_below_main_rail_m': round(DROP, 2),
+        'ramp_length_m': round(length, 1),
+        'mean_rail_grade_pct': round(100 * fall / length, 2),
+        'max_rail_grade_pct': max(p['abs_grade_pct'] for p in on_ramp),
+        'relative_drop_grade_pct': round(100 * DROP / length, 2),
+        'vertical_curve_half_length_m': W_CURVE,
+        'mean_rail_grade_if_ramp_5m_shorter_pct': round(100 * fall / (length - 5), 2),
+        'mean_rail_grade_if_ramp_5m_longer_pct': round(100 * fall / (length + 5), 2),
         'room_for_ramp_m': round(C_CROSSING - SS['crossing_margin_m'] - C_PLATFORM_END, 1),
         'platform_overlap_m': round(overlap, 1),
-        'headroom_at_crossing_m': round(headroom, 2), 'headroom_required_m': round(need, 2),
+        'crossings': crossings,
+        'headroom_at_crossing_m': headroom, 'headroom_required_m': round(SUB_CLEAR, 2),
         'depth_at_section_ab_m': round(t1_drop_smooth(C_SECTION_AB), 2),
         'agrees_with_section_ab': bool(abs(t1_drop_smooth(C_SECTION_AB) - DROP) < 0.3),
-        'fits': bool(overlap < 0.5 and headroom > need - 0.05),
+        'fits': bool(overlap < 0.5 and headroom > SUB_CLEAR - 0.05),
     }
     stats = {
         'id': sid, 'title': spec['title'], 'description': spec.get('description', ''),
@@ -657,19 +752,68 @@ def build_scenario(spec):
             'area_exposed_m2': round(float(area[cov < 0].sum()), 1),
             'area_below_min_cover_m2': round(float(area[cov < min_cover].sum()), 1),
             'min_cover_criterion_m': min_cover, 'roof_area_m2': round(float(area.sum()), 1),
+            'share_exposed_pct': round(100 * float(area[cov < 0].sum() / area.sum()), 1),
+            'by_level': by_level,
+            # not confidence limits: how the total moves if every cover value were 0.3 m off
+            'area_exposed_if_cover_0_3m_less_m2': round(float(area[cov < 0.3].sum()), 1),
+            'area_exposed_if_cover_0_3m_more_m2': round(float(area[cov < -0.3].sum()), 1),
             'mean_soil_load_kpa': round(float(np.average(np.maximum(cov, 0), weights=area)) * soil, 2),
             'max_soil_load_kpa': round(float(max(cov.max(), 0)) * soil, 2),
         },
         'earthwork_vs_existing': {'cut_m3': round(cut, 1), 'fill_m3': round(fill, 1)},
         'duck_under': duck, 'tracks': grades, 'stairs': stairs,
         'counts': {'subway_3d': len(col.features), 'surface_3d': len(ground.features), 'tracks': len(ways)},
+        'geometry_repairs': {'polygons_simplified': col.repaired + ground.repaired,
+                             'area_removed_m2': round(col.dropped_m2 + ground.dropped_m2, 3)},
     }
     with open(os.path.join(out_dir, 'stats.json'), 'w') as fh:
         json.dump(stats, fh, indent=1)
     return stats
 
 
+def validate_scenarios():
+    """Checks config/scenarios.json before any output is written. Raises ValueError with a plain message."""
+    seen = set()
+    for i, spec in enumerate(SCEN['scenarios']):
+        sid = spec.get('id')
+        where = f"scenario #{i + 1} ({sid!r})"
+        if not isinstance(sid, str) or not sid or not all(ch.isalnum() or ch in '_-' for ch in sid):
+            raise ValueError(f"{where}: 'id' must be letters, digits, '_' or '-'")
+        if sid in seen:
+            raise ValueError(f"{where}: this id is used twice")
+        seen.add(sid)
+        if not spec.get('title'):
+            raise ValueError(f"{where}: 'title' is missing")
+        surface = spec.get('surface')
+        if not isinstance(surface, dict) or surface.get('type') not in ('existing', 'offset', 'plane'):
+            raise ValueError(f"{where}: surface.type must be 'existing', 'offset' or 'plane'")
+        if surface['type'] == 'offset' and 'dz_m' not in surface:
+            raise ValueError(f"{where}: an 'offset' surface needs dz_m")
+        for key in ('dz_m', 'grade_long_pct', 'grade_cross_pct', 'reach_m', 'blend_m'):
+            v = surface.get(key)
+            if v is not None and not (isinstance(v, (int, float)) and math.isfinite(v)):
+                raise ValueError(f"{where}: surface.{key} must be a number")
+        if spec.get('structure', 'as_built') not in ('as_built', 'follow_surface'):
+            raise ValueError(f"{where}: structure must be 'as_built' or 'follow_surface'")
+        duck = spec.get('duck_under')
+        if duck is not None:
+            if duck.get('full_depth_at', 'section_ab') not in ('section_ab', 'crossing'):
+                raise ValueError(f"{where}: duck_under.full_depth_at must be 'section_ab' or 'crossing'")
+            g = duck.get('grade_pct')
+            if g is not None and not (isinstance(g, (int, float)) and math.isfinite(g) and g > 0):
+                raise ValueError(f"{where}: duck_under.grade_pct must be a number greater than 0")
+            try:
+                surf = make_surface(surface)
+                set_ramp(duck, Levels(surf if spec.get('structure') == 'follow_surface' else EXISTING))
+            except ValueError as err:
+                raise ValueError(f"{where}: {err}") from None
+
+
 def main():
+    try:
+        validate_scenarios()
+    except ValueError as err:
+        sys.exit(f"config/scenarios.json: {err}\nNothing was written.")
     n = build_plan()
     print(f'plan_1897.geojson: {n} features')
     index = []
@@ -680,8 +824,9 @@ def main():
               f"   <min cover {c['area_below_min_cover_m2']:7.1f} m2   main grade {st['main_rail']['mean_grade_pct_northward']:5.2f}%"
               f"   cut/fill {st['earthwork_vs_existing']['cut_m3']:7.0f}/{st['earthwork_vs_existing']['fill_m3']:7.0f} m3")
         d = st['duck_under']
-        print(f"{'':<28} duck-under ramp {d['ramp_length_m']:5.1f} m at {d['mean_grade_pct']:4.1f}% (max {d['max_grade_pct']:4.1f}%)"
-              f"   platform overlap {d['platform_overlap_m']:5.1f} m   headroom {d['headroom_at_crossing_m']:.2f}/{d['headroom_required_m']:.2f} m"
+        print(f"{'':<28} duck-under ramp {d['ramp_length_m']:5.1f} m, rail grade mean {d['mean_rail_grade_pct']:4.1f}% max {d['max_rail_grade_pct']:4.1f}%"
+              f" (relative drop {d['relative_drop_grade_pct']:4.1f}%)   platform overlap {d['platform_overlap_m']:5.1f} m"
+              f"   headroom {d['headroom_at_crossing_m']:.2f}/{d['headroom_required_m']:.2f} m"
               f"   {'fits' if d['fits'] else 'DOES NOT FIT'}{'' if d['agrees_with_section_ab'] else ', contradicts section A-B'}")
         index.append({k: st[k] for k in ('id', 'title', 'description', 'structure')})
     sw, ne = sheet2ll(0, 0), sheet2ll(972 * SC, (IMG_H - 140) * SC)

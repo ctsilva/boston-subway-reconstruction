@@ -1,10 +1,10 @@
 {
- "_doc": "Ground gradings to evaluate. surface.type: 'existing' (USGS 3DEP), 'offset' (raise/lower by dz_m), 'plane' (uniform street grade: grade_long_pct northward along Tremont St, null keeps the existing average; grade_cross_pct toward the Common; dz_m shift). Regrading applies over the subway and reach_m around it, blending into the existing ground over blend_m. structure: 'as_built' keeps the subway where it is; 'follow_surface' re-profiles it to keep its depth below the regraded street. duck_under (optional) replaces the ramp of the sub-subway: grade_pct sets its slope (omit it to start the ramp at the end of the southbound platform); full_depth_at is 'section_ab' (as drawn) or 'crossing' (as late as possible, just before passing under the Boylston St tracks).",
+ "_doc": "Scenarios to build. surface.type: 'existing' (USGS 3DEP), 'offset' (raise/lower by dz_m), 'plane' (uniform street grade: grade_long_pct northward along Tremont St, null keeps the existing average; grade_cross_pct toward the Common; dz_m shift). Regrading applies over the subway and reach_m around it, blending into the existing ground over blend_m. structure: 'as_built' (default) leaves the reconstructed subway where it is; 'follow_surface' re-profiles it to keep its depth below the regraded street. duck_under (optional) replaces the ramp of the sub-subway: grade_pct is the mean grade of the rail itself between the top and bottom of the ramp (omit it to start the ramp at the end of the southbound platform); full_depth_at is 'section_ab' (as drawn) or 'crossing' (as late as possible, just before passing under the Boylston St tracks).",
  "scenarios": [
   {
    "id": "existing",
-   "title": "Existing grade",
-   "description": "Present-day ground (USGS 3DEP), subway as built.",
+   "title": "Baseline reconstruction",
+   "description": "Today's ground (USGS 3DEP) with the subway as reconstructed from the drawing.",
    "surface": {
     "type": "existing"
    }
@@ -12,7 +12,7 @@
   {
    "id": "lowered_1m",
    "title": "Street lowered 1 m",
-   "description": "Ground cut 1 m over the subway, subway as built.",
+   "description": "Ground cut 1 m over the subway; subway unchanged.",
    "surface": {
     "type": "offset",
     "dz_m": -1.0
@@ -21,7 +21,7 @@
   {
    "id": "raised_1m",
    "title": "Street raised 1 m",
-   "description": "1 m of fill over the subway, subway as built.",
+   "description": "1 m of fill over the subway; subway unchanged.",
    "surface": {
     "type": "offset",
     "dz_m": 1.0
@@ -30,7 +30,7 @@
   {
    "id": "level_cross",
    "title": "Uniform grade, no cross slope",
-   "description": "Ground over the subway regraded to the average Tremont St grade with no rise toward the Common.",
+   "description": "Ground over the subway regraded to the average Tremont St grade with no rise toward the Common; subway unchanged.",
    "surface": {
     "type": "plane",
     "grade_long_pct": null,
@@ -40,7 +40,7 @@
   {
    "id": "grade_3pct",
    "title": "3% street grade",
-   "description": "Ground regraded to rise 3% northward, pivoting at section A-B; subway as built.",
+   "description": "Ground regraded to rise 3% northward, pivoting at section A-B; subway unchanged.",
    "surface": {
     "type": "plane",
     "grade_long_pct": 3.0,
@@ -61,7 +61,7 @@
   {
    "id": "duck_under_5pct",
    "title": "Duck-under at 5%",
-   "description": "Hypothetical: the ramp into the sub-subway at a gentler 5%, still reaching full depth at section A-B. It has to start beside the southbound platform.",
+   "description": "Hypothetical: a ramp whose rail falls 5% on average and reaches full depth at section A-B.",
    "surface": {
     "type": "existing"
    },
@@ -73,7 +73,7 @@
   {
    "id": "duck_under_9pct",
    "title": "Duck-under at 9%",
-   "description": "Hypothetical: a steeper, shorter ramp that starts south of the platform and reaches full depth at section A-B.",
+   "description": "Hypothetical: a ramp whose rail falls 9% on average and reaches full depth at section A-B.",
    "surface": {
     "type": "existing"
    },
@@ -85,7 +85,7 @@
   {
    "id": "duck_under_longest",
    "title": "Duck-under, longest ramp that fits",
-   "description": "Hypothetical: the ramp starts at the end of the southbound platform and reaches full depth only just before passing under the Boylston St tracks. This is the gentlest slope the plan allows, but it contradicts section A-B.",
+   "description": "Hypothetical: the ramp starts at the end of the southbound platform and reaches full depth only just before passing under the Boylston St tracks. This contradicts section A-B.",
    "surface": {
     "type": "existing"
    },

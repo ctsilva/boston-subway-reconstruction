@@ -17,7 +17,7 @@
   },
   "datum_m": -8.0,
   "vertical": {
-    "_doc": "Section scale: 2.128 px/ft. Elevations are metres NAVD88, tied to the present-day ground (USGS 3DEP).",
+    "_doc": "Section scale: 2.128 px/ft, so one pixel of reading error is about 0.5 ft. Elevations are metres NAVD88, tied to the present-day ground (USGS 3DEP).",
     "rail_below_street_ft": 17.75,
     "clear_height_ft": 14.5,
     "roof_slab_ft": 2.5,
@@ -38,7 +38,8 @@
       "south_rise_grade_pct": 5.0,
       "southbound_platform_end_px_x": 545,
       "crossing_margin_m": 6.0,
-      "slab_over_ft": 0.9
+      "deck_over_ft": 0.9,
+      "vertical_curve_m": 3.0
     },
     "sub_passage_clear_ft": 8.5,
     "conduit_height_ft": 14.0,
@@ -50,11 +51,14 @@
     "branch_blend_m": 25.0
   },
   "assumptions": [
-    "Cut-and-cover prior: the main-level rail sits 17.75 ft (17.2 ft at section A-B, 18.3 ft at C-D on the drawing) below the smoothed street grade. Inside the station box the reference is the Tremont St curb at the same sheet x, so the tracks are level with each other; along the Boylston St and Pleasant St branches it is the smoothed ground above the tunnel.",
-    "The present-day ground (USGS 3DEP) stands in for the 1897 ground.",
-    "Where the sub-subway ramp starts (ramp_top_px_x) is not shown; it is taken at the south end of the southbound platform edge. Section A-B fixes the full 13.7 ft depth at ramp_bottom_px_x.",
-    "South of the crossing under the Boylston St tracks the sub-subway is assumed to climb at south_rise_grade_pct; the drawing gives no levels there.",
-    "Sub-passage headroom, the conduit's level, the soil unit weight and the minimum-cover criterion are assumed."
+    "Cut-and-cover prior: the main-level rail sits 17.75 ft (17.2 ft at section A-B, 18.3 ft at C-D on the drawing) below the smoothed street grade. Inside the station box the reference is the Tremont St curb at the same sheet x, so the tracks are level with each other; along the Boylston St and Pleasant St branches it is the smoothed ground above the tunnel. Every level in the station box is therefore reconstructed from two section dimensions and present-day terrain, not measured point by point.",
+    "The present-day ground (USGS 3DEP, 120 samples about 27 m by 40 m apart) stands in for the 1897 ground.",
+    "The duck-under ramp is taken to start where the southbound platform edge ends (ramp_top_px_x); the drawing does not show the start. Section A-B fixes the full 13.7 ft depth at ramp_bottom_px_x.",
+    "deck_over_ft, the main rail to the underside of the deck over the sub-subway, is 13.7 ft less the 12.8 ft clear height of section A-B. The same deck is assumed where the Boylston St tracks cross; the drawing has no section there.",
+    "Grades change through vertical curves of half-length vertical_curve_m, kept inside the ramp.",
+    "South of the crossing the sub-subway is assumed to climb at south_rise_grade_pct; the drawing gives no levels there.",
+    "Sub-passage headroom, the conduit's level, the soil unit weight and the minimum-cover criterion are assumed.",
+    "Not in this file: where sections A-B and C-D and the two branches fall on the sheet, and the cell and sampling sizes, are set in scripts/build.py."
   ],
   "output": {
     "track_segment_m": 3.0,

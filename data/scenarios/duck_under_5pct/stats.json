@@ -1,7 +1,7 @@
 {
  "id": "duck_under_5pct",
  "title": "Duck-under at 5%",
- "description": "Hypothetical: the ramp into the sub-subway at a gentler 5%, still reaching full depth at section A-B. It has to start beside the southbound platform.",
+ "description": "Hypothetical: a ramp whose rail falls 5% on average and reaches full depth at section A-B.",
  "surface": {
   "type": "existing"
  },
@@ -13,13 +13,28 @@
  },
  "cover_over_roof": {
   "min_m": -0.241,
-  "mean_m": 0.462,
+  "mean_m": 0.466,
   "max_m": 4.773,
   "area_exposed_m2": 152.0,
   "area_below_min_cover_m2": 346.2,
   "min_cover_criterion_m": 0.15,
   "roof_area_m2": 5851.4,
-  "mean_soil_load_kpa": 8.83,
+  "share_exposed_pct": 2.6,
+  "by_level": {
+   "main": {
+    "roof_area_m2": 5646.8,
+    "area_exposed_m2": 152.0,
+    "min_cover_m": -0.241
+   },
+   "sub-subway": {
+    "roof_area_m2": 204.6,
+    "area_exposed_m2": 0.0,
+    "min_cover_m": 3.23
+   }
+  },
+  "area_exposed_if_cover_0_3m_less_m2": 2476.2,
+  "area_exposed_if_cover_0_3m_more_m2": 0.0,
+  "mean_soil_load_kpa": 8.91,
   "max_soil_load_kpa": 90.69
  },
  "earthwork_vs_existing": {
@@ -28,23 +43,52 @@
  },
  "duck_under": {
   "hypothetical": true,
-  "drop_m": 4.18,
-  "ramp_length_m": 83.5,
-  "mean_grade_pct": 5.0,
-  "max_grade_pct": 6.98,
+  "requested_mean_rail_grade_pct": 5.0,
+  "drop_below_main_rail_m": 4.18,
+  "ramp_length_m": 98.1,
+  "mean_rail_grade_pct": 5.0,
+  "max_rail_grade_pct": 6.52,
+  "relative_drop_grade_pct": 4.26,
+  "vertical_curve_half_length_m": 3.0,
+  "mean_rail_grade_if_ramp_5m_shorter_pct": 5.27,
+  "mean_rail_grade_if_ramp_5m_longer_pct": 4.76,
   "room_for_ramp_m": 81.4,
-  "platform_overlap_m": 21.8,
+  "platform_overlap_m": 36.4,
+  "crossings": [
+   {
+    "track_above": "track_sb_boylston",
+    "chainage_m": 190.7,
+    "lonlat": [
+     -71.06481707,
+     42.35264101
+    ],
+    "rail_above_m": 2.919,
+    "rail_below_m": -1.257,
+    "headroom_m": 3.9
+   },
+   {
+    "track_above": "track_nb_boylston",
+    "chainage_m": 197.6,
+    "lonlat": [
+     -71.06479301,
+     42.35258229
+    ],
+    "rail_above_m": 2.919,
+    "rail_below_m": -1.257,
+    "headroom_m": 3.9
+   }
+  ],
   "headroom_at_crossing_m": 3.9,
   "headroom_required_m": 3.9,
-  "depth_at_section_ab_m": 4.09,
+  "depth_at_section_ab_m": 4.18,
   "agrees_with_section_ab": true,
   "fits": false
  },
  "tracks": {
   "track_sb_pleasant": {
-   "max_abs_grade_pct": 6.98,
-   "min_ele": -1.257,
-   "max_ele": 4.153,
+   "max_abs_grade_pct": 6.52,
+   "min_ele": -1.319,
+   "max_ele": 4.124,
    "max_depth_m": 9.887
   },
   "track_sb_boylston": {
@@ -101,8 +145,12 @@
   }
  },
  "counts": {
-  "subway_3d": 1812,
+  "subway_3d": 1841,
   "surface_3d": 4124,
   "tracks": 356
+ },
+ "geometry_repairs": {
+  "polygons_simplified": 2,
+  "area_removed_m2": 0.127
  }
 }

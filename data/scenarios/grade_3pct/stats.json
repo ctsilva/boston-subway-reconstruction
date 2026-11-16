@@ -1,7 +1,7 @@
 {
  "id": "grade_3pct",
  "title": "3% street grade",
- "description": "Ground regraded to rise 3% northward, pivoting at section A-B; subway as built.",
+ "description": "Ground regraded to rise 3% northward, pivoting at section A-B; subway unchanged.",
  "surface": {
   "type": "plane",
   "grade_long_pct": 3.0,
@@ -15,13 +15,28 @@
  },
  "cover_over_roof": {
   "min_m": -1.041,
-  "mean_m": 1.328,
+  "mean_m": 1.332,
   "max_m": 4.63,
   "area_exposed_m2": 1031.8,
   "area_below_min_cover_m2": 1355.4,
   "min_cover_criterion_m": 0.15,
   "roof_area_m2": 5851.4,
-  "mean_soil_load_kpa": 27.03,
+  "share_exposed_pct": 17.6,
+  "by_level": {
+   "main": {
+    "roof_area_m2": 5646.8,
+    "area_exposed_m2": 1031.8,
+    "min_cover_m": -1.041
+   },
+   "sub-subway": {
+    "roof_area_m2": 204.6,
+    "area_exposed_m2": 0.0,
+    "min_cover_m": 3.157
+   }
+  },
+  "area_exposed_if_cover_0_3m_less_m2": 1848.1,
+  "area_exposed_if_cover_0_3m_more_m2": 642.0,
+  "mean_soil_load_kpa": 27.1,
   "max_soil_load_kpa": 87.97
  },
  "earthwork_vs_existing": {
@@ -30,22 +45,51 @@
  },
  "duck_under": {
   "hypothetical": false,
-  "drop_m": 4.18,
+  "requested_mean_rail_grade_pct": null,
+  "drop_below_main_rail_m": 4.18,
   "ramp_length_m": 61.7,
-  "mean_grade_pct": 6.77,
-  "max_grade_pct": 8.75,
+  "mean_rail_grade_pct": 8.04,
+  "max_rail_grade_pct": 9.48,
+  "relative_drop_grade_pct": 6.77,
+  "vertical_curve_half_length_m": 3.0,
+  "mean_rail_grade_if_ramp_5m_shorter_pct": 8.75,
+  "mean_rail_grade_if_ramp_5m_longer_pct": 7.44,
   "room_for_ramp_m": 81.4,
   "platform_overlap_m": 0.0,
+  "crossings": [
+   {
+    "track_above": "track_sb_boylston",
+    "chainage_m": 190.7,
+    "lonlat": [
+     -71.06481707,
+     42.35264101
+    ],
+    "rail_above_m": 2.919,
+    "rail_below_m": -1.257,
+    "headroom_m": 3.9
+   },
+   {
+    "track_above": "track_nb_boylston",
+    "chainage_m": 197.6,
+    "lonlat": [
+     -71.06479301,
+     42.35258229
+    ],
+    "rail_above_m": 2.919,
+    "rail_below_m": -1.257,
+    "headroom_m": 3.9
+   }
+  ],
   "headroom_at_crossing_m": 3.9,
   "headroom_required_m": 3.9,
-  "depth_at_section_ab_m": 4.06,
+  "depth_at_section_ab_m": 4.18,
   "agrees_with_section_ab": true,
   "fits": true
  },
  "tracks": {
   "track_sb_pleasant": {
-   "max_abs_grade_pct": 8.75,
-   "min_ele": -1.257,
+   "max_abs_grade_pct": 9.48,
+   "min_ele": -1.319,
    "max_ele": 4.194,
    "max_depth_m": 9.811
   },
@@ -103,8 +147,12 @@
   }
  },
  "counts": {
-  "subway_3d": 1795,
+  "subway_3d": 1815,
   "surface_3d": 4124,
   "tracks": 356
+ },
+ "geometry_repairs": {
+  "polygons_simplified": 4,
+  "area_removed_m2": 0.223
  }
 }

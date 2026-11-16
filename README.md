@@ -14,8 +14,8 @@ plots beside it, and uses it to look at two questions:
 > **2. How would the station fare if the street above it were graded differently?**
 > Lowered, raised, or given a different slope: how much earth would be left over the roof?
 
-Throughout, the model keeps **what the drawing shows** apart from **what had to be guessed**. One
-switch in the viewer colours every part by how well it is supported
+This is a reconstruction, not a survey. The model keeps **what rests on the drawing** apart from
+**what had to be guessed**, and one switch in the viewer colours every part accordingly
 ([section 4](#4-fact-and-hypothesis)).
 
 The drawing is the plan of Boylston Street station on the Tremont Street Subway (opened 1897),
@@ -57,7 +57,7 @@ You do not need to know how to program to run this. Follow the steps below in or
 | You need | Why | How to check |
 | :--- | :--- | :--- |
 | **A recent Chrome or Edge** | The viewer draws with WebGPU, which Chrome and Edge have switched on by default. Firefox and Safari may not work. | Open `chrome://gpu` and look for "WebGPU: Hardware accelerated". |
-| **Node.js** (version 22 or newer) | Runs the small web server for the viewer. | Type `node --version` in a terminal. If it is missing, install the "LTS" version from <https://nodejs.org>. |
+| **Node.js** (version 22.12 or newer) | Runs the small web server for the viewer. | Type `node --version` in a terminal. If it is missing, install the "LTS" version from <https://nodejs.org>. |
 | **Python 3** (3.10 or newer) | Only needed if you want to rebuild the data or add a scenario. | Type `python3 --version`. If it is missing, install it from <https://www.python.org/downloads/>. |
 | **An internet connection, once** | Step 1 downloads the Autark toolkit and one other tool (about 70 MB). | |
 
@@ -140,6 +140,14 @@ The first two lines create a private Python environment in a folder called `.ven
 four libraries into it. You do that once. The last line rebuilds everything under `data/` in a few
 seconds and prints two summary lines per scenario. Then reload the page in Chrome.
 
+To confirm that the numbers still describe the model that was written, run the checks as well:
+
+```bash
+.venv/bin/python scripts/check.py
+```
+
+It should print `all checks passed for 9 scenarios`.
+
 ## 3. Using the viewer
 
 ### Moving around
@@ -180,7 +188,7 @@ Three layers are coloured by a number instead of having one fixed colour:
 
 | Layer | Coloured by | How to read the colour |
 | :--- | :--- | :--- |
-| Tracks | Slope, in percent | **Pale yellow** = flat. **Dark red** = steep (9% or more). |
+| Tracks | Slope, in percent | **Pale yellow** = flat. **Dark red** = steep (10% or more). |
 | Roof slab | Cover, in metres | **Blue** = earth on top of the roof (darker = more). **White** = none. **Red** = the roof would stick out above the ground. |
 | Ground (wireframe) | Cut or fill, in metres | **Brown** = earth removed. **Green** = earth added. **Grey/white** = unchanged. |
 
@@ -197,7 +205,7 @@ data as the 3D tracks. Every dot or bar stands for 3 m pieces of track.
 
 - **Track profile.** Each dot is one piece of track: left to right is how far north it is, up and
   down is the height of its rail. This is the side view an engineer would draw. The long diagonal
-  line of dark red dots is the duck-under ramp, dropping about 4 m.
+  line of dark red dots is the duck-under ramp, dropping about 5 m.
 - **How much track at each slope.** A bar chart counting pieces of track by slope. Most of the
   station is within 2% of level; the short bars far to the left are the ramp.
 
@@ -227,14 +235,14 @@ There are nine to start with:
 
 | Scenario | What it means |
 | :--- | :--- |
-| Existing grade | Today's ground, with the subway as drawn. This is the baseline. |
+| Baseline reconstruction | Today's ground, with the subway as reconstructed from the drawing. Everything else is compared with this. |
 | Street lowered 1 m | 1 m of earth is cut away over the subway. |
 | Street raised 1 m | 1 m of earth is added over the subway. |
 | Uniform grade, no cross slope | The ground over the subway is flattened side to side, so it no longer rises toward the Common. |
 | 3% street grade | The street is made to climb 3 m for every 100 m going north. |
 | 3% street grade, subway re-profiled | The same street, but the subway is rebuilt to follow it at its original depth. |
-| Duck-under at 5% | The ramp is made gentler, 5%, and still reaches full depth where the drawing shows it. |
-| Duck-under at 9% | The ramp is made steeper and shorter. |
+| Duck-under at 5% | The ramp is made gentler: its rail falls 5% on average, and it still reaches full depth where the drawing shows it. |
+| Duck-under at 9% | The ramp is made steeper and shorter: 9% on average. |
 | Duck-under, longest ramp that fits | The ramp is stretched as far as the plan allows. |
 
 **Colour by.** Switches between the analysis colours above and the evidence colours of
@@ -252,13 +260,20 @@ bottom of the panel. Red marks a problem. Click a row to switch to that scenario
 ## 4. Fact and hypothesis
 
 A 3D model looks equally solid everywhere, including where it is a guess. To keep the two apart,
-every piece of the model carries a label, `basis`, saying how its **level** (its height) is known.
-Positions on the map are all traced from the plan.
+every piece of the model carries two labels.
+
+**`plan_basis`** says how its position on the map is known. Everything is traced from the plan;
+a few pieces (the crossovers) are marked `traced_approximate` because the scan is hard to read
+there.
+
+**`basis`** says how its **level** (its height) is known. Nothing in this model has a surveyed
+height. The drawing gives heights at two cross sections only, and everything else is built from
+those:
 
 | Label | Meaning | Where |
 | :--- | :--- | :--- |
-| **Measured** | Level scaled off a cross section on the drawing. | The main station box: tracks, platforms, floor, roof, walls. |
-| **Inferred** | Level follows from a stated rule and a measured point. | The duck-under ramp and its level run (anchored on section A-B), and the two branches leaving the station (assumed to follow the street). |
+| **Reconstructed** | Level built from the dimensions on the two cross sections, hung a fixed depth below today's street. | The main station box: tracks, platforms, floor, roof, walls. |
+| **Inferred** | Level follows from a stated rule and one section. | The duck-under ramp and its level run (anchored on section A-B), and the two branches leaving the station (assumed to follow the street). |
 | **Assumed** | The drawing gives no level. | The duck-under south of the crossing, the water conduit, the passage under the tracks. |
 | **Hypothetical** | An alternative that was never built. | Whatever a scenario changes: an alternative ramp, or a re-profiled subway. |
 
@@ -266,15 +281,14 @@ In the viewer, set **Colour by** to **Evidence**. A legend appears under the men
 
 ![Coloured by evidence](docs/viewer_evidence.png)
 
-Green is measured, purple is inferred, orange is assumed. Now choose the scenario **Duck-under at
-5%**: the ramp turns pink, because that ramp is hypothetical, while everything else keeps its
-colour.
+Green is reconstructed, purple is inferred, orange is assumed. Now choose the scenario
+**Duck-under at 5%**: the ramp turns pink, because that ramp is hypothetical, while everything
+else keeps its colour.
 
 ![A hypothetical ramp, in pink](docs/viewer_duck_under_5pct.png)
 
-The same label is in the data files (the `basis` property of every feature), so it travels with
-the model into any other tool. The ground is not labelled: it is today's ground, measured, but it
-is standing in for the ground of 1897.
+Both labels are in the data files, so they travel with the model into any other tool. The ground
+is not labelled: it is today's ground, standing in for the ground of 1897.
 
 ## 5. Results: the duck-under
 
@@ -293,46 +307,64 @@ Three things on the drawing limit the ramp that leads down to it:
 Measured along the track, there are 81 m between the end of the platform and the crossing, but
 only 62 m between the end of the platform and section A-B.
 
-| Scenario | Ramp length (m) | Average slope | Runs beside the platform for (m) | Fits the plan | Agrees with section A-B |
-| :--- | ---: | ---: | ---: | :---: | :---: |
-| As modelled from the drawing | 62 | 6.8% | 0 | yes | yes |
-| Duck-under at 5% | 84 | 5.0% | 22 | **no** | yes |
-| Duck-under at 9% | 46 | 9.0% | 0 | yes | yes |
-| Longest ramp that fits | 81 | 5.1% | 0 | yes | **no** |
+| Scenario | Ramp length (m) | Rail grade, average | Rail grade, steepest | Runs beside the platform for (m) | Fits the plan | Agrees with section A-B |
+| :--- | ---: | ---: | ---: | ---: | :---: | :---: |
+| Baseline reconstruction | 62 | 8.0% | 9.5% | 0 | yes | yes |
+| Duck-under at 5% | 98 | 5.0% | 6.5% | 36 | **no** | yes |
+| Duck-under at 9% | 55 | 9.0% | 10.5% | 0 | yes | yes |
+| Longest ramp that fits | 81 | 6.6% | 7.8% | 0 | yes | **no** |
 
-What this says:
+**How to read the grades.** They are grades of the rail itself, measured from level, which is
+what a car has to climb.
 
-- **If section A-B is right, the ramp averages at least 6.8%.** That is the gentlest ramp that
-  starts at the end of the platform and reaches the drawn depth at A-B. Starting any later makes it
-  steeper.
-- **A 5% ramp does not fit.** It would have to begin 22 m back, alongside the platform, where the
+- *Average* is the fall of the rail from the top of the ramp to the bottom, divided by the ramp's
+  length. For the 5% and 9% scenarios this is the number that was asked for.
+- *Steepest* is the steepest 3 m piece. It is higher than the average because the ramp eases in
+  and out through short vertical curves (3 m each way, an assumption).
+- The ramp alone lowers the track 4.2 m relative to the main track, which over 62 m is 6.8%. The
+  rail grade is higher, 8.0%, because the main track is itself modelled as falling about 1.2%
+  southward along this stretch. That 1.2% follows today's street and is inferred, not drawn.
+
+What this says, within this reconstruction:
+
+- **If section A-B is right, the ramp averages about 8%**, or about 7% relative to the main
+  track. That is the gentlest ramp that starts at the end of the platform and reaches the drawn
+  depth at A-B. Starting any later makes it steeper.
+- **A 5% ramp does not fit.** It would have to begin 36 m back, alongside the platform, where the
   track has to be level with the platform.
-- **The gentlest ramp the plan has room for at all is about 5.1%**, and only by staying shallow
-  past section A-B, which contradicts the drawing.
+- **The gentlest ramp the plan has room for is about 6.6%**, and only by staying shallow past
+  section A-B, which contradicts the drawing.
 
-"Average slope" is the drop divided by the ramp length. The steepest 3 m piece is steeper (8.8% as
-modelled), because the station floor itself slopes slightly and the ramp eases in and out.
+**What "fits" does and does not mean.** A ramp fits if it starts south of the platform and leaves
+12.8 ft of headroom under both Boylston Street tracks. The headroom is measured under the deck that
+carries the upper tracks. That deck is taken from section A-B (13.7 ft less 12.8 ft, so 0.9 ft
+from the upper rail to its underside) and assumed to be the same at the two crossings, where the
+drawing has no section. So the baseline passes by construction; the test bites only for a ramp
+that is not yet at full depth when it reaches the crossing. The 3D model and this test use the
+same deck, and `scripts/check.py` confirms they agree.
 
-Treat these as the model's findings, not as history: they rest on where the platform edge ends and
-where section A-B falls on a small scan. See [section 12](#12-what-the-model-cannot-tell-you).
+**How firm these are.** They rest on where the platform edge ends and where section A-B falls,
+both read off a small scan. If the ramp were 5 m shorter the average would be 8.8%; 5 m longer,
+7.4%. Treat them as the model's findings, not as history.
 
 ## 6. Results: grading the street
 
 **Cover** is the thickness of earth between the top of the roof slab and the street. Positive cover
 is good. Zero or negative cover means the roof would be at or above street level.
 
-| Scenario | Least cover (m) | Average cover (m) | Roof exposed (m²) | Tunnel slope | Earth cut / filled (m³) |
+| Scenario | Least cover (m) | Average cover (m) | Roof exposed (m²) | Share of roof | Earth cut / filled (m³) |
 | :--- | ---: | ---: | ---: | ---: | ---: |
-| Existing grade | -0.24 | 0.46 | 152 | 0.74% | 0 / 0 |
-| Street lowered 1 m | -1.24 | -0.54 | 5647 | 0.74% | 17012 / 0 |
-| Street raised 1 m | 0.76 | 1.46 | 0 | 0.74% | 0 / 17012 |
-| Uniform grade, no cross slope | -0.08 | 0.47 | 1155 | 0.74% | 3318 / 4170 |
-| 3% street grade | -1.04 | 1.33 | 1032 | 0.74% | 4383 / 17744 |
-| 3% street grade, subway re-profiled | -0.41 | 0.40 | 445 | 2.85% | 4383 / 17744 |
+| Baseline reconstruction | -0.24 | 0.47 | 152 | 3% | 0 / 0 |
+| Street lowered 1 m | -1.24 | -0.53 | 5647 | 97% | 17012 / 0 |
+| Street raised 1 m | 0.76 | 1.47 | 0 | 0% | 0 / 17012 |
+| Uniform grade, no cross slope | -0.08 | 0.48 | 1155 | 20% | 3318 / 4170 |
+| 3% street grade | -1.04 | 1.33 | 1032 | 18% | 4383 / 17744 |
+| 3% street grade, subway re-profiled | -0.41 | 0.41 | 445 | 8% | 4383 / 17744 |
 
-The whole roof is 5647 m². With **3% street grade** chosen, the roof turns red at the south end
-(bottom left) and dark blue at the north end, and the wire grid shows where earth is removed
-(brown) and added (green):
+The roof is 5851 m² in all: 5647 m² over the main station box and 205 m² over the deeper
+single-track tunnel of the duck-under. With **3% street grade** chosen, the roof turns red at the
+south end (bottom left) and dark blue at the north end, and the wire grid shows where earth is
+removed (brown) and added (green):
 
 ![3% street grade](docs/viewer_grade_3pct.png)
 
@@ -340,15 +372,17 @@ What this says:
 
 - **The station was built very close to the surface.** The drawing shows only about 0.25 m (10
   inches) of earth over the roof on the Tremont Street side. Lowering the street by 1 m would
-  expose the entire roof.
+  expose the roof of the whole main box. Only the deeper duck-under tunnel stays covered.
 - **The earth over the roof comes mostly from the Common.** The ground rises from Tremont Street
   toward the Common. Flatten that rise and a fifth of the roof loses its cover.
 - **Changing the street's slope helps one end and hurts the other**, unless the tunnel is rebuilt
   to match, and then the cars have to climb the steeper slope.
 
-**One caution.** The baseline itself shows 152 m² of roof "exposed". That is not real. It is the
-size of the model's own uncertainty, about ±0.3 m up or down. Compare each scenario against the
-baseline; do not read a single number on its own.
+**One caution.** The baseline itself shows 152 m² of roof "exposed". That is the model's own
+error, not a finding: its levels are uncertain by a few tenths of a metre, and the exposed area is
+very sensitive to that. If every cover value in the baseline were 0.3 m lower, the exposed area
+would be 2476 m²; 0.3 m higher, it would be zero. Compare each scenario against the baseline, and
+trust the large differences, not the small ones.
 
 ## 7. Adding your own scenario
 
@@ -385,7 +419,7 @@ Settings for `duck_under`:
 
 | Setting | Meaning |
 | :--- | :--- |
-| `grade_pct` | The average slope of the ramp, in percent. Leave it out to start the ramp at the end of the platform. |
+| `grade_pct` | The average grade of the rail on the ramp, in percent, measured from level. The build works out how long the ramp must be. Leave it out to start the ramp at the end of the platform. |
 | `full_depth_at` | `"section_ab"`: full depth where the drawing shows it. `"crossing"`: full depth as late as possible, just before passing under the Boylston St tracks. |
 
 Three kinds of `surface`:
@@ -402,6 +436,10 @@ ground over the next 15 m. To change those distances, add `"reach_m"` and `"blen
 The measurements themselves (the 13.7 ft drop, the headroom, where the platform ends) are in
 `config/model.json`.
 
+The build checks this file before it writes anything. If an entry has a typo, an unknown setting,
+or asks for a ramp that cannot be modelled (so gentle that it would start off the edge of the
+drawing, say), it stops with a message naming the entry and leaves the existing data untouched.
+
 ## 8. Using the numbers in MATLAB or Excel
 
 Every scenario has a folder under `data/scenarios/` with two files of numbers:
@@ -409,7 +447,9 @@ Every scenario has a folder under `data/scenarios/` with two files of numbers:
 - **`profiles.csv`** opens in Excel or MATLAB. One row for every 3 m of every track: the rail
   height, the roof height, the ground height, the depth, the cover and the slope.
 - **`stats.json`** holds the totals shown in the viewer's two tables, and more: the ramp length,
-  its slope, the headroom at the crossing, the rise of each stair.
+  its grades (`mean_rail_grade_pct`, `max_rail_grade_pct`, and `relative_drop_grade_pct`, the drop
+  relative to the main track), the headroom at each crossing, the roof area by level, the rise of
+  each stair.
 
 To draw the long profile of the duck-under track in MATLAB:
 
@@ -421,8 +461,8 @@ plot(t.chainage_m, t.ele_surface_m, t.chainage_m, t.ele_roof_top_m, t.chainage_m
 legend('street', 'top of roof', 'rail'); xlabel('distance along the track, m'); ylabel('elevation, m')
 ```
 
-To compare two ramps, read the same file from two scenario folders (`existing` and
-`duck_under_5pct`, say) and plot both `ele_rail_m` columns. The track names are
+To compare two ramps, read the same file from two scenario folders (`existing`, which is the
+baseline, and `duck_under_5pct`, say) and plot both `ele_rail_m` columns. The track names are
 `track_sb_pleasant`, `track_sb_boylston`, `track_nb_boylston`, `track_nb_pleasant`,
 `crossover_mid` and `crossover_north`.
 
@@ -446,8 +486,8 @@ The Green Line still runs through this tunnel. So the traced tracks were matched
 tracks in OpenStreetMap, the free world map. The computer looked for the rotation, size and
 position that put one on top of the other.
 
-It is a close match: the typical gap is 0.3 m, and the scale it found agrees with the scale bar
-printed on the drawing to within 0.2%. In the picture below, today's map is drawn over the 1897
+It is a close match: the typical gap is 0.3 m (1 m at worst for nine points in ten), and the scale
+it found agrees with the scale bar printed on the drawing to within 0.2%. In the picture below, today's map is drawn over the 1897
 plan. Today's tracks (red) and platforms (green) fall on the old ones, today's station entrances
 (magenta circles) fall on the 1897 stairs, and today's buildings (orange) fall on the old blocks.
 
@@ -469,6 +509,9 @@ were measured with their own scale bar:
 | Sub-subway rail below the main rail | 13.7 ft (4.2 m) |
 | Clear height in the sub-subway | 12.8 ft (3.9 m) |
 
+One pixel on the scan is about half a foot at the scale of the sections, so each of these could
+be off by that much.
+
 The sub-subway is the lower box at the right of section A-B, with a car in it.
 
 ### The ground
@@ -479,8 +522,10 @@ There is no survey of the 1897 ground in the drawing, so today's ground is used 
 ### Putting it together
 
 `scripts/build.py` reads the tracing, the measurements and the list of scenarios, and writes the 3D
-model for each scenario as stacks of simple blocks. Every number it uses is in `config/model.json`,
-with a note saying whether it was measured or assumed.
+model for each scenario as stacks of simple blocks. The dimensions and assumptions it uses are in
+`config/model.json`, each with a note saying where it comes from. A few placements (where the
+sections and the two branches fall on the sheet) and the sizes of the blocks are set in the script
+itself.
 
 ## 10. What is in each folder
 
@@ -488,14 +533,15 @@ with a note saying whether it was measured or assumed.
 | :--- | :--- |
 | `boylston_station_plan_1897.png` | The scanned drawing. |
 | `trace/features.json` | The tracing, in positions on the scan (pixels). |
-| `config/model.json` | The map placement and every height, each marked measured or assumed. |
+| `config/model.json` | The map placement, the dimensions read off the drawing, and the assumptions. |
 | `config/scenarios.json` | The list of scenarios. **This is the file to edit.** |
 | `scripts/build.py` | Builds everything in `data/`. |
+| `scripts/check.py` | Checks the built data against itself: clearances, valid shapes, consistent numbers. |
 | `scripts/georeference.py` | Redoes the match to OpenStreetMap and redraws `docs/osm_overlay.png`. |
 | `scripts/overlay.py` | Redraws `docs/trace_overlay.png`. |
 | `viewer/` | The web page: the 3D view and the plots. `package.json` lists the Autark version it uses (4.1.1). |
 | `data/plan_1897.geojson` | The flat plan on the real map. |
-| `data/scenarios/<name>/tracks.geojson` | The tracks in 3D, in 3 m pieces, each with height, depth, cover, slope and `basis`. |
+| `data/scenarios/<name>/tracks.geojson` | The tracks in 3D, in 3 m pieces, each with height, depth, cover, slope, `basis` and `plan_basis`. |
 | `data/scenarios/<name>/subway_3d.geojson` | The structure as blocks: roof, walls, floor, platforms, tracks, stairs, passage, conduit. |
 | `data/scenarios/<name>/surface_3d.geojson` | The ground, as a surface and as a wire grid. |
 | `data/scenarios/<name>/stats.json`, `profiles.csv` | The numbers. |
@@ -545,13 +591,20 @@ map.events.on(MapEvent.PICKING, ({ selection }) => profile.setSelection(selectio
 
 ## 12. What the model cannot tell you
 
-- **It is good to about ±0.3 m vertically.** Today's ground is not the 1897 ground, and the tunnel
-  is modelled as following the smoothed street, which the real one only roughly does. Use the model
-  to compare scenarios with each other, not to read off exact depths.
+- **Its vertical accuracy has not been measured.** There is no independent survey to check it
+  against. As a working assumption, treat levels as uncertain by a few tenths of a metre: today's
+  ground is not the 1897 ground, it is known here from 120 spot heights about 27 m by 40 m apart,
+  and the tunnel is modelled as following the smoothed street, which the real one only roughly
+  does. Use the model to compare scenarios with each other, not to read off exact depths.
+- **Its position on the map is a fit, not a survey.** The traced tracks land within 0.3 m of
+  today's OpenStreetMap tracks for half the control points and within 1 m for nine in ten. That
+  shows the fit is tight; it does not prove where the 1897 tracks were.
 - **The duck-under results depend on two readings of a small scan:** where the southbound platform
-  edge ends, and where section A-B crosses the track. Moving either by 5 m changes the 6.8% by
-  about half a percentage point. A sharper scan, or a profile drawing of the sub-subway if one
+  edge ends, and where section A-B crosses the track. Moving either by 5 m changes the 8% by more
+  than half a percentage point. A sharper scan, or a profile drawing of the sub-subway if one
   survives in the archives, would settle it.
+- **The deck over the duck-under is taken from one section.** Its thickness at the two crossings
+  is assumed, so the headroom there is not an independent finding.
 - **Some heights are guesses**, marked "assumed" or "inferred" in the viewer: how the sub-subway
   climbs back up to the south, the levels along the two branches leaving the station, the depth of
   the water conduit, and the headroom of the passage under the tracks. They are listed under
@@ -579,7 +632,7 @@ Step 1 has not been run in this folder, or it did not finish. Run `npm install` 
 folder again and check that it ends without errors.
 
 **`npm install` fails.**
-Check your internet connection and that `node --version` shows 22 or newer.
+Check your internet connection and that `node --version` shows 22.12 or newer.
 
 **The terminal shows a different address, such as `http://localhost:5200/`.**
 Port 5199 was busy, most likely because the viewer is already running in another terminal window.

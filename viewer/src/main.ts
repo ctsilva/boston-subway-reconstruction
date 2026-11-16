@@ -23,7 +23,7 @@ const LAYERS: LayerDef[] = [
     { id: 'floor', label: 'Floor', file: 'subway_3d', parts: ['floor'], color: '#cfc8ba', opacity: 1, visible: true },
     { id: 'platforms', label: 'Platforms', file: 'subway_3d', parts: ['platform'], color: '#e3b55a', opacity: 1, visible: true },
     { id: 'tracks', label: 'Tracks', file: 'subway_3d', parts: ['track'], color: '#333333', opacity: 1, visible: true,
-      thematic: { property: 'abs_grade_pct', interpolator: ColorMapInterpolator.SEQ_YL_OR_RD, domain: [0, 9], label: 'grade, %' } },
+      thematic: { property: 'abs_grade_pct', interpolator: ColorMapInterpolator.SEQ_YL_OR_RD, domain: [0, 10], label: 'grade, %' } },
     { id: 'stairs', label: 'Stairs', file: 'subway_3d', parts: ['stairs'], color: '#c8642a', opacity: 1, visible: true },
     { id: 'below', label: 'Sub-passage and water conduit', file: 'subway_3d', parts: ['passage', 'conduit'], color: '#3a9db0', opacity: 1, visible: true },
     { id: 'ground-grid', label: 'Ground (wireframe)', file: 'surface_3d', parts: ['ground_grid'], color: '#5f7f52', opacity: 1, visible: true,
@@ -34,7 +34,7 @@ const LAYERS: LayerDef[] = [
 ];
 
 /** How well each level is supported, in the order of the categorical colour scheme below. */
-const BASIS = ['measured', 'assumed', 'inferred', 'hypothetical'];
+const BASIS = ['reconstructed', 'assumed', 'inferred', 'hypothetical'];
 const BASIS_COLOURS = ['#1b9e77', '#d95f02', '#7570b3', '#e7298a'];   // d3.schemeDark2
 let colourMode: 'analysis' | 'evidence' = 'analysis';
 
@@ -89,12 +89,25 @@ function applyStyle(def: LayerDef, fc: FeatureCollection) {
     }
 }
 
+let loadRequest = 0;   // only the latest scenario request may change the view
+
 async function loadScenario(id: string) {
+    const request = ++loadRequest;
     $('#status').textContent = 'Loading…';
-    const files = {
-        subway_3d: project(await getJson<FeatureCollection>(`/scenarios/${id}/subway_3d.geojson`)),
-        surface_3d: project(await getJson<FeatureCollection>(`/scenarios/${id}/surface_3d.geojson`)),
-    };
+    let files: Record<LayerDef['file'], FeatureCollection>;
+    try {
+        const [subway, surface] = await Promise.all([
+            getJson<FeatureCollection>(`/scenarios/${id}/subway_3d.geojson`),
+            getJson<FeatureCollection>(`/scenarios/${id}/surface_3d.geojson`),
+        ]);
+        files = { subway_3d: project(subway), surface_3d: project(surface) };
+    } catch (err) {
+        // keep showing the scenario that is already loaded
+        if (request === loadRequest) $('#status').textContent = `Could not load "${id}": ${(err as Error).message}`;
+        return;
+    }
+    if (request !== loadRequest) return;   // a newer choice was made while this one was loading
+    showInfo();
     for (const def of LAYERS) {
         if (loaded.has(def.id)) map.removeLayer(def.id);
         const fc: FeatureCollection = {
@@ -199,17 +212,16 @@ function buildLayerList() {
 async function buildStats() {
     const table = $('#stats');
     const duck = $('#duck');
-    duck.innerHTML = '<tr><th>Scenario</th><th>Ramp<br>m</th><th>Slope<br>%</th><th>Beside<br>platform m</th><th>Fits</th><th>Matches<br>section A-B</th></tr>';
-    table.innerHTML = '<tr><th>Scenario</th><th>Cover<br>min</th><th>Cover<br>mean</th><th>Roof<br>exposed m²</th><th>Max track<br>grade %</th><th>Cut / fill<br>m³</th></tr>';
+    duck.innerHTML = '<tr><th>Scenario</th><th>Ramp<br>m</th><th>Rail grade<br>mean %</th><th>Rail grade<br>max %</th><th>Beside<br>platform m</th><th>Fits</th><th>Matches<br>A-B</th></tr>';
+    table.innerHTML = '<tr><th>Scenario</th><th>Cover<br>min</th><th>Cover<br>mean</th><th>Roof<br>exposed m²</th><th>Share<br>of roof</th><th>Cut / fill<br>m³</th></tr>';
     for (const s of index.scenarios) {
         const st = await getJson<any>(`/scenarios/${s.id}/stats.json`);
         const c = st.cover_over_roof;
-        const grade = Math.max(...Object.values(st.tracks).map((t: any) => t.max_abs_grade_pct));
         const tr = document.createElement('tr');
         tr.dataset.id = s.id;
         const cells: [string, boolean][] = [
             [s.title, false], [c.min_m.toFixed(2), c.min_m < 0], [c.mean_m.toFixed(2), c.mean_m < 0],
-            [c.area_exposed_m2.toFixed(0), c.area_exposed_m2 > 0], [grade.toFixed(1), false],
+            [c.area_exposed_m2.toFixed(0), c.area_exposed_m2 > 0], [`${c.share_exposed_pct.toFixed(0)}%`, c.area_exposed_m2 > 0],
             [`${st.earthwork_vs_existing.cut_m3.toFixed(0)} / ${st.earthwork_vs_existing.fill_m3.toFixed(0)}`, false],
         ];
         for (const [text, bad] of cells) {
@@ -223,7 +235,7 @@ async function buildStats() {
         const row = document.createElement('tr');
         row.dataset.id = s.id;
         const duckCells: [string, string][] = [
-            [s.title, ''], [d.ramp_length_m.toFixed(0), ''], [d.mean_grade_pct.toFixed(1), ''],
+            [s.title, ''], [d.ramp_length_m.toFixed(0), ''], [d.mean_rail_grade_pct.toFixed(1), ''], [d.max_rail_grade_pct.toFixed(1), ''],
             [d.platform_overlap_m.toFixed(0), d.platform_overlap_m > 0.5 ? 'bad' : ''],
             [d.fits ? 'yes' : 'no', d.fits ? 'ok' : 'bad'],
             [d.agrees_with_section_ab ? 'yes' : 'no', d.agrees_with_section_ab ? 'ok' : 'bad'],
@@ -264,7 +276,11 @@ async function main() {
         showInfo(selection.length && fc ? fc.features[id] : undefined);
     });
 
-    $('#clear-selection').addEventListener('click', () => { select([], 'map'); map.setHighlightedIds('tracks', []); showInfo(); });
+    $('#clear-selection').addEventListener('click', () => {
+        select([], 'map');
+        for (const def of LAYERS) map.setHighlightedIds(def.id, []);
+        showInfo();
+    });
     document.querySelectorAll<HTMLElement>('#evidence-legend .sw').forEach(sw => {
         sw.style.background = BASIS_COLOURS[BASIS.indexOf(sw.dataset.basis!)];
     });

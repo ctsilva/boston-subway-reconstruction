@@ -22,13 +22,15 @@
     <label for="colour">Colour by</label>
     <select id="colour">
       <option value="analysis">Analysis: cover over the roof, slope of the tracks</option>
-      <option value="evidence">Evidence: what is measured and what is guessed</option>
+      <option value="evidence">Evidence: what rests on the drawing and what is guessed</option>
     </select>
     <div id="evidence-legend" hidden>
-      <div><span class="sw" data-basis="measured"></span><b>Measured</b> position traced from the plan, level scaled off a cross section</div>
-      <div><span class="sw" data-basis="inferred"></span><b>Inferred</b> position traced, level follows from a stated rule</div>
-      <div><span class="sw" data-basis="assumed"></span><b>Assumed</b> position traced, level not shown on the drawing</div>
+      <div><span class="sw" data-basis="reconstructed"></span><b>Reconstructed</b> level built from the dimensions on the two cross sections</div>
+      <div><span class="sw" data-basis="inferred"></span><b>Inferred</b> level follows from a stated rule and one section</div>
+      <div><span class="sw" data-basis="assumed"></span><b>Assumed</b> the drawing gives no level here</div>
       <div><span class="sw" data-basis="hypothetical"></span><b>Hypothetical</b> an alternative that was never built</div>
+      <p class="note">All positions are traced from the plan. No level is surveyed: even the green parts rest on
+        two section dimensions and today's street level. The plots keep showing slope.</p>
     </div>
 
     <label>Track profile <small>(linked to the 3D view)</small></label>
@@ -48,11 +50,14 @@
 
     <label>The duck-under ramp</label>
     <table id="duck"></table>
-    <p class="note">The ramp takes the southbound Pleasant St track down into the sub-subway. It has to start
-      south of the platform and be at full depth before it passes under the Boylston St tracks.</p>
+    <p class="note">The ramp takes the southbound Pleasant St track down into the sub-subway. "Fits" means it
+      starts south of the platform and has the drawn headroom where it passes under the Boylston St tracks.
+      Grades are of the rail itself, measured from level.</p>
 
     <label>Cover over the roof</label>
     <table id="stats"></table>
+    <p class="note">The baseline's own exposed area is model error, not a finding: vertical levels are uncertain
+      by a few tenths of a metre. Compare scenarios with the baseline.</p>
     <p class="note">Elevations in metres NAVD88, drawn above a datum plane at <span id="datum"></span> m.
       Cover is ground minus top of roof slab.</p>
   </aside>
