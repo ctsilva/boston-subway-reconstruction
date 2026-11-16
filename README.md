@@ -57,8 +57,8 @@ You do not need to know how to program to run this. Follow the steps below in or
 | You need | Why | How to check |
 | :--- | :--- | :--- |
 | **A recent Chrome or Edge** | The viewer draws with WebGPU, which Chrome and Edge have switched on by default. Firefox and Safari may not work. | Open `chrome://gpu` and look for "WebGPU: Hardware accelerated". |
-| **Node.js** (version 22 or newer) | Runs the small web server for the viewer. | Type `node --version` in a terminal. |
-| **Python 3** (3.10 or newer) | Only needed if you want to rebuild the data or add a scenario. | Type `python3 --version`. |
+| **Node.js** (version 22 or newer) | Runs the small web server for the viewer. | Type `node --version` in a terminal. If it is missing, install the "LTS" version from <https://nodejs.org>. |
+| **Python 3** (3.10 or newer) | Only needed if you want to rebuild the data or add a scenario. | Type `python3 --version`. If it is missing, install it from <https://www.python.org/downloads/>. |
 | **An internet connection, once** | Step 1 downloads the Autark toolkit and one other tool (about 70 MB). | |
 
 A "terminal" is the app called **Terminal** on a Mac, or **PowerShell** on Windows. Steps 1 and 2
@@ -67,12 +67,31 @@ Windows, replace `.venv/bin/` with `.venv\Scripts\`.
 
 ## 2. Set it up, step by step
 
+### Get the files
+
+You do not need a GitHub account or any knowledge of Git.
+
+1. Open <https://github.com/ctsilva/boston-subway-reconstruction> in your browser.
+2. Press the green **Code** button, then **Download ZIP**.
+3. Unzip the file (double-click it). You get a folder called `boston-subway-reconstruction-main`.
+   Move it somewhere easy to find, such as your Documents folder.
+
+If you do use Git, `git clone https://github.com/ctsilva/boston-subway-reconstruction.git` gives
+you the same files in a folder called `boston-subway-reconstruction`.
+
 ### Step 1. Download what the viewer needs
 
-Open a terminal, go to the `viewer` folder inside this project, and install:
+Open a terminal and go to the `viewer` folder inside the folder you just unzipped. The easiest way
+is to type `cd ` (with a space after it), drag the `viewer` folder from Finder or File Explorer
+into the terminal window, and press Enter. Typed out, it looks like this:
 
 ```bash
-cd boston-subway-reconstruction/viewer
+cd Documents/boston-subway-reconstruction-main/viewer
+```
+
+Then install:
+
+```bash
 npm install
 ```
 
@@ -111,7 +130,7 @@ needed.
 You only need this if you change the tracing, the measurements, or the list of scenarios.
 
 ```bash
-cd boston-subway-reconstruction
+cd Documents/boston-subway-reconstruction-main
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/python scripts/build.py
