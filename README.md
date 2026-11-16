@@ -70,25 +70,41 @@ Windows, replace `.venv/bin/` with `.venv\Scripts\`.
 
 ### Get the files
 
-You do not need a GitHub account or any knowledge of Git.
+**Recommended: make your own copy on GitHub (a "fork").** A fork is your own copy of this project
+under your own account. You can change it freely, your changes are saved with their history, and
+you can share it or send improvements back. It takes a few minutes and is free.
+
+1. Create an account at <https://github.com/signup> if you do not have one.
+2. Open <https://github.com/ctsilva/boston-subway-reconstruction> and press **Fork** near the top
+   right, then **Create fork**. You now have your own copy at
+   `github.com/your-name/boston-subway-reconstruction`.
+3. Install [GitHub Desktop](https://desktop.github.com), sign in, and choose **File → Clone
+   repository**. Pick your fork from the list and press **Clone**. The files are now in a folder
+   called `boston-subway-reconstruction`, by default inside `Documents/GitHub`.
+
+When you later change something, such as adding a scenario, GitHub Desktop shows what changed.
+Type a short description, press **Commit**, then **Push origin** to save it to your fork.
+
+**Quick alternative: just download it.** No account is needed, but there is nowhere to save your
+changes online.
 
 1. Open <https://github.com/ctsilva/boston-subway-reconstruction> in your browser.
 2. Press the green **Code** button, then **Download ZIP**.
 3. Unzip the file (double-click it). You get a folder called `boston-subway-reconstruction-main`.
    Move it somewhere easy to find, such as your Documents folder.
 
-If you do use Git, `git clone https://github.com/ctsilva/boston-subway-reconstruction.git` gives
-you the same files in a folder called `boston-subway-reconstruction`.
-
 ### Step 1. Download what the viewer needs
 
-Open a terminal and go to the `viewer` folder inside the folder you just unzipped. The easiest way
-is to type `cd ` (with a space after it), drag the `viewer` folder from Finder or File Explorer
-into the terminal window, and press Enter. Typed out, it looks like this:
+Open a terminal and go to the `viewer` folder inside the project folder. The easiest way is to
+type `cd ` (with a space after it), drag the `viewer` folder from Finder or File Explorer into the
+terminal window, and press Enter. Typed out, it looks like this if you cloned your fork:
 
 ```bash
-cd Documents/boston-subway-reconstruction-main/viewer
+cd Documents/GitHub/boston-subway-reconstruction/viewer
 ```
+
+If you downloaded the ZIP instead, the folder is wherever you put it and is called
+`boston-subway-reconstruction-main`.
 
 Then install:
 
@@ -131,7 +147,7 @@ needed.
 You only need this if you change the tracing, the measurements, or the list of scenarios.
 
 ```bash
-cd Documents/boston-subway-reconstruction-main
+cd Documents/GitHub/boston-subway-reconstruction
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/python scripts/build.py
